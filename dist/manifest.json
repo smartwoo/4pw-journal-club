@@ -1,0 +1,91 @@
+{
+  "updated_at": "2026-10-31T06:10:26+07:00",
+  "logical_pages": 56,
+  "files": [
+    {
+      "path": "index.html",
+      "sha256": "8dd60f50721bec58f6afe72f96d59c3e772067121952db94bb519df04aab12f2",
+      "bytes": 2248913
+    },
+    {
+      "path": ".nojekyll",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "version.json",
+      "sha256": "6b0b6b4ccb4c0363578b020c9d41c4a4231e1f65325ce857b9974b298812985f",
+      "bytes": 104
+    },
+    {
+      "path": "SOURCE_NOTES.md",
+      "sha256": "01857682364a2b58ee9e65e1042f82e4537632e01a3355022eb63773d6f7dd1d",
+      "bytes": 763
+    },
+    {
+      "path": "assets/illustrations/cover-abstract.png",
+      "sha256": "a6837d8ce6301e54cc694561af5e7e9bfc7eb0504e7984b019f158ad51920bed",
+      "bytes": 1318538
+    },
+    {
+      "path": "assets/illustrations/slide01-participation-abstract.png",
+      "sha256": "12597d9601252207d753d0509f422dcca2286597d5f4dfa5d5503d6d852d5d71",
+      "bytes": 1410093
+    },
+    {
+      "path": "assets/illustrations/slide03-handover-abstract.png",
+      "sha256": "14011c8783f48214db1aa086193fa41d69913789ad2deb1c995d437d347c2c22",
+      "bytes": 1473691
+    },
+    {
+      "path": "assets/illustrations/slide04-whole-model-abstract.png",
+      "sha256": "d4bb0a89680f56736c58d9fa2bf51716144f8f9210f598e1ec2ad0ab896c5b50",
+      "bytes": 1464351
+    },
+    {
+      "path": "assets/illustrations/slide06-timely-abstract.png",
+      "sha256": "6aa9b2c00c9f0ad2e048f54320484ce7feb9d2a74e835001d28d9fbc55460e0a",
+      "bytes": 1369587
+    },
+    {
+      "path": "assets/illustrations/slide07-rationale-abstract.png",
+      "sha256": "a658326720a52524c15bbfaeb5b001ac529e0bc403953b153e73792dbd2536e1",
+      "bytes": 1175829
+    },
+    {
+      "path": "assets/illustrations/slide08-explanatory-gap-abstract.png",
+      "sha256": "d3ade36ca6f7623e1207fa89aa298e0f2ca50f8caecf988515d0dd8bc9675e40",
+      "bytes": 1145871
+    },
+    {
+      "path": "assets/illustrations/slide10-contribution-abstract.png",
+      "sha256": "34cefe926c71cb951226400c699b7f59ad57cd2cce7e4df9f6c187eacbd8b089",
+      "bytes": 1476379
+    },
+    {
+      "path": "assets/illustrations/slide12-synthesis-pending-abstract.png",
+      "sha256": "5c71d8dbf49a465b4c979ee50e2411f5e0d7745a68742a177e36e845573cde0d",
+      "bytes": 1351365
+    },
+    {
+      "path": "assets/literature/rajan2019/figure-1.jpg",
+      "sha256": "23869db1c79a4f6ce4ebd38311212602315e4122ce63306e83ab14c891809a15",
+      "bytes": 48781
+    },
+    {
+      "path": "assets/literature/rajan2019/figure-2.jpg",
+      "sha256": "10c059b518a788581b4367ce252a5cfd2f4a1f347c5bf0e520641e9ba8dbbd0b",
+      "bytes": 65280
+    },
+    {
+      "path": "assets/literature/rajan2019/figure-3.jpg",
+      "sha256": "82201112fa853e2fc3294f57dd95656d0f3e193b99501b79fb9bf4e4c35dd981",
+      "bytes": 60369
+    },
+    {
+      "path": "assets/literature/rajan2019/figure-4.jpg",
+      "sha256": "b7cba4aabe59af05a3b8568c72dfe0bd892696392f6aa0431baa293a484ca6fa",
+      "bytes": 69241
+    }
+  ]
+}
