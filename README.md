@@ -1,6 +1,14 @@
-# Public static edition
+# Thailand’s 4PW: Journal club
 
-This folder is a deployment preparation area. It does not create a repository or deploy a website.
+[Read the presentation](https://smartwoo.github.io/4pw-journal-club/?route=story&mode=read&scene=JC01&step=1) · [Present](https://smartwoo.github.io/4pw-journal-club/?route=story&mode=present&scene=JC01&step=1) · [Explore the CLD](https://smartwoo.github.io/4pw-journal-club/?route=story&mode=present&scene=JC-CLD-STORY&step=7)
+
+**Bridging the Policy-Implementation Gap in Thailand’s Participatory Public Policy Process Based on Wisdom (4PW): A Realist and Systems Thinking Synthesis Through Collaborative Governance and Social Participation Lenses**
+
+A research proposal and qualified synthesis, organised around Why, Concepts, Design, Lenses, Findings and Discussion. The main route has 22 pages, with a complete 56-page evidence library. Each content page presents a question, a Thai key conclusion, supporting points and source links. The CLD explorer retains 24 variables, 50 relationships and 28 named loop views, with relationship-level evidence and qualifications.
+
+The presentation distinguishes proposed methods, source findings, provisional model relationships and conditional implications. A closed diagram does not establish observed causal feedback. Original figures retain their attribution and licence; unpublished participant-level records are not distributed.
+
+## Updating the public edition
 
 Build the latest working deck locally:
 
