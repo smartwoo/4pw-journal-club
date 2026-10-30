@@ -24,7 +24,7 @@ $remote = & git -C $sitePath remote get-url origin
 if ($LASTEXITCODE -ne 0 -or $remote -notmatch '^https://github\.com/[^/]+/[^/]+(?:\.git)?$|^git@github\.com:[^/]+/[^/]+(?:\.git)?$') {
     throw 'A GitHub origin for the selected repository is required.'
 }
-& git -C $sitePath add -- dist .github/workflows/pages.yml README.md build_public_site.py Publish-Latest.ps1 .gitignore
+& git -C $sitePath add -- dist .github/workflows/pages.yml README.md build_public_site.py Publish-Latest.ps1 .gitignore .gitattributes
 if ($LASTEXITCODE -ne 0) { throw 'Could not stage the public bundle.' }
 & git -C $sitePath diff --cached --quiet
 if ($LASTEXITCODE -eq 1) {

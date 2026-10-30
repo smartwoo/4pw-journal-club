@@ -258,24 +258,24 @@ def main():
         if output == source.parent or not output.is_relative_to(PROJECT.resolve()):
             raise ValueError('Output must be a distinct folder inside this project.')
         output.mkdir(parents=True, exist_ok=True)
-        (output / 'index.html').write_text(html, encoding='utf-8')
+        (output / 'index.html').write_text(html, encoding='utf-8', newline='\n')
         for relative in assets:
             target = output / relative
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source.parent / relative, target)
-        (output / '.nojekyll').write_text('', encoding='utf-8')
-        (output / 'version.json').write_text(json.dumps({'revision': report['public_html_sha256'][:12], 'updated_at': updated_at, 'entry_url': './'}, indent=2) + '\n', encoding='utf-8')
+        (output / '.nojekyll').write_text('', encoding='utf-8', newline='\n')
+        (output / 'version.json').write_text(json.dumps({'revision': report['public_html_sha256'][:12], 'updated_at': updated_at, 'entry_url': './'}, indent=2) + '\n', encoding='utf-8', newline='\n')
         (output / 'SOURCE_NOTES.md').write_text(
             '# Public edition\n\nWorking research presentation; updated ' + updated_at + '.\n\n' +
             PRIVATE_NOTE + '\n\n' + REDACTION_NOTE + '\n\n' +
-            'Published citations link to their original sources. Candidate literature is provisional; screening labels do not establish inclusion or causal support. Original source figures retain their attribution and recorded CC BY-NC 4.0 licence. No private source files, raw candidate abstract exports or font binaries are distributed.\n', encoding='utf-8')
+            'Published citations link to their original sources. Candidate literature is provisional; screening labels do not establish inclusion or causal support. Original source figures retain their attribution and recorded CC BY-NC 4.0 licence. No private source files, raw candidate abstract exports or font binaries are distributed.\n', encoding='utf-8', newline='\n')
         # The manifest is deliberately public-safe: no paths or withheld content.
         manifest = {'updated_at': updated_at, 'logical_pages': len(deck['scenes']), 'files': []}
         for relative in ['index.html', '.nojekyll', 'version.json', 'SOURCE_NOTES.md', *assets]:
             f = output / relative
             manifest['files'].append({'path': relative, 'sha256': digest(f.read_bytes()), 'bytes': f.stat().st_size})
-        (output / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
-        (Path(__file__).parent / 'public-build-audit.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+        (output / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8', newline='\n')
+        (Path(__file__).parent / 'public-build-audit.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8', newline='\n')
     print(json.dumps({'check_only': args.check, 'logical_pages': len(deck['scenes']), 'assets': len(assets), 'transforms': report['transforms'], 'source_sha256': report['source_sha256'], 'deployment_performed': False}, ensure_ascii=True))
 
 

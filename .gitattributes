@@ -1,0 +1,2 @@
+# Preserve the reviewed static bundle byte-for-byte across operating systems.
+dist/** -text

@@ -1,11 +1,11 @@
 {
-  "updated_at": "2026-10-31T06:10:26+07:00",
+  "updated_at": "2026-10-31T06:16:11+07:00",
   "logical_pages": 56,
   "files": [
     {
       "path": "index.html",
-      "sha256": "8dd60f50721bec58f6afe72f96d59c3e772067121952db94bb519df04aab12f2",
-      "bytes": 2248913
+      "sha256": "f050c8899e5a3349aefc0a96eea25bae0bf2143c1f91698cc95fe16685eda913",
+      "bytes": 2206016
     },
     {
       "path": ".nojekyll",
@@ -14,13 +14,13 @@
     },
     {
       "path": "version.json",
-      "sha256": "6b0b6b4ccb4c0363578b020c9d41c4a4231e1f65325ce857b9974b298812985f",
-      "bytes": 104
+      "sha256": "7d5477dfc6982afa848460b5f0919c43c0f0126baa3f8c921c046511c367244a",
+      "bytes": 99
     },
     {
       "path": "SOURCE_NOTES.md",
-      "sha256": "01857682364a2b58ee9e65e1042f82e4537632e01a3355022eb63773d6f7dd1d",
-      "bytes": 763
+      "sha256": "2afa097b1876c73500a33376e1857359f5e936b787da7c826af4cbe4465da0af",
+      "bytes": 754
     },
     {
       "path": "assets/illustrations/cover-abstract.png",
