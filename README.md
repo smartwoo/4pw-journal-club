@@ -1,10 +1,12 @@
 # Thailand’s 4PW: Journal club
 
-[Read the presentation](https://smartwoo.github.io/4pw-journal-club/?route=story&mode=read&scene=JC01&step=1) · [Present](https://smartwoo.github.io/4pw-journal-club/?route=story&mode=present&scene=JC01&step=1) · [Explore the CLD](https://smartwoo.github.io/4pw-journal-club/?route=story&mode=present&scene=JC-CLD-STORY&step=7)
+[Read the presentation](https://smartwoo.github.io/4pw-journal-club/?route=story&mode=read&scene=JC01&step=1) · [Present](https://smartwoo.github.io/4pw-journal-club/?route=story&mode=present&scene=JC01&step=1) · [Explore the CLD](https://smartwoo.github.io/4pw-journal-club/?route=story&mode=present&scene=JC-CLD-STORY&step=1)
 
 **Bridging the Policy-Implementation Gap in Thailand’s Participatory Public Policy Process Based on Wisdom (4PW): A Realist and Systems Thinking Synthesis Through Collaborative Governance and Social Participation Lenses**
 
 A research proposal and qualified synthesis, organised around Why, Concepts, Design, Lenses, Findings and Discussion. The main route has 22 pages, with a complete 56-page evidence library. Each content page presents a question, a Thai key conclusion, supporting points and source links. The CLD explorer retains 24 variables, 50 relationships and 28 named loop views, with relationship-level evidence and qualifications.
+
+The CLD builds on one growing canvas, connecting R1 to R2 and onward through shared variables. Names appear before new arrows; polarity, delays and source evidence remain inspectable. The main walkthrough introduces each relationship once in 107 steps. The detailed 187-step route also retraces reused relationships. Use Current path or zoom to read individual loops within the final network overview.
 
 The presentation distinguishes proposed methods, source findings, provisional model relationships and conditional implications. A closed diagram does not establish observed causal feedback. Original figures retain their attribution and licence; unpublished participant-level records are not distributed.
 
