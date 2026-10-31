@@ -1,11 +1,11 @@
 {
-  "updated_at": "2026-10-31T11:31:45+07:00",
-  "logical_pages": 56,
+  "updated_at": "2026-10-31T12:11:12+07:00",
+  "logical_pages": 62,
   "files": [
     {
       "path": "index.html",
-      "sha256": "921431294148749b085df17404b4c55039cfab123d582e14607cb596ed7262b7",
-      "bytes": 4897584
+      "sha256": "28baba0b8b9098be3de09f07b2d190b11b093e2e4ff9e0de10fc9b5140d6101b",
+      "bytes": 7150739
     },
     {
       "path": ".nojekyll",
@@ -14,18 +14,28 @@
     },
     {
       "path": "version.json",
-      "sha256": "421c9dbfea873938abc88c88922851909c85ac5f06d67f36919799ddc04327bc",
+      "sha256": "a9efd55d774ff271ce235a28ad5c74bd8457f10c67311cdf05fb36a79f144866",
       "bytes": 99
     },
     {
       "path": "SOURCE_NOTES.md",
-      "sha256": "5574db6fa2fc1627e1a02b42bd40af6296099fa5a597d000a16e425657212aed",
-      "bytes": 765
+      "sha256": "3c80802a4dd946b13e962727dbde29ebb672a009f3cd115b61c8cb7fe2164d1e",
+      "bytes": 1259
     },
     {
       "path": "model-specification.html",
       "sha256": "577b79f40352a89ceca8dc8273ac5887ebe53aeac3b2bdd42c16aaa707073dee",
       "bytes": 773831
+    },
+    {
+      "path": "link-evidence.html",
+      "sha256": "8429e143d24a032b55b3e2e4375d9b4c508d86e23e9509e764fd7bc69c6d90fb",
+      "bytes": 1706043
+    },
+    {
+      "path": "assets/figures/link-evidence-prisma-20261031.png",
+      "sha256": "ef16f656028df611d978214529a1c739d7fc5f7a090b414051f5f647ae689b5b",
+      "bytes": 303353
     },
     {
       "path": "assets/illustrations/cover-abstract.png",

@@ -52,12 +52,46 @@ def digest(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def validate_link_evidence(deck: dict) -> None:
+    update = deck.get('link_evidence_update')
+    if not update:
+        return
+    if update.get('schema') != 'link-evidence-public/v1':
+        raise ValueError('Only the reviewed public evidence projection can be published.')
+    causal = {e['id'] for e in deck['cld_story']['edges'] if e['connection_kind'] == 'causal'}
+    if set(update['links']) != causal:
+        raise ValueError('The new review must map exactly to the 66 causal relationships.')
+    private_labels = {'civil-society consultation transcript', 'provider consultation transcript'}
+    total = 0
+    for lid, review in update['links'].items():
+        edge = next(e for e in deck['cld_story']['edges'] if e['id'] == lid)
+        if any(review['signature'][k] != edge[k] for k in ('id', 'from', 'to', 'polarity', 'delay', 'connection_kind')):
+            raise ValueError('The evidence review signature no longer matches the model.')
+        ids = set()
+        for row in review['rows']:
+            if row.get('visibility') != 'published_public_url' or row['source_label'].casefold() in private_labels:
+                raise ValueError('A non-public evidence row was passed to the public projection.')
+            if not re.match(r'^https?://[^\s/]+', row['url']) or LOCAL_URL.search(row['url']) or LOOPBACK.search(row['url']):
+                raise ValueError('A public evidence row lacks its original public source URL.')
+            if digest(row['quote'].encode('utf-8')) != row['quote_sha256']:
+                raise ValueError('An evidence quotation changed after projection.')
+            if row['id'] in ids or any(k in row for k in ('raw', 'review_text_private', 'participant_role')):
+                raise ValueError('Duplicate or private evidence payload.')
+            ids.add(row['id'])
+        if any(not set(c['row_ids']) <= ids for c in review['claims']):
+            raise ValueError('An evidence claim cites a row outside its public link-specific source set.')
+        total += len(ids)
+    if total != 885:
+        raise ValueError('Unexpected public evidence-row inventory; reconcile before publishing.')
+
+
 def prepare(source: Path, updated_at: str) -> tuple[str, dict, list[str], dict]:
     original = source.read_text(encoding='utf-8')
     match = DATA_RE.search(original)
     if not match:
         raise ValueError('Cannot locate deck-data JSON; no files written.')
     deck = json.loads(match[2])
+    validate_link_evidence(deck)
     scene_ids = [s['id'] for s in deck['scenes']]
     counts = Counter()
     redacted_by_link = {}
@@ -111,7 +145,8 @@ def prepare(source: Path, updated_at: str) -> tuple[str, dict, list[str], dict]:
             return [sanitize(item, path + (i,)) for i, item in enumerate(value)]
         if isinstance(value, dict):
             presentation_text = bool(path and path[0] == 'cld_presentation')
-            if not presentation_text and sensitive_record(value) and any(k in value for k in ('source_locator', 'source', 'context')):
+            public_review_text = bool(path and path[0] == 'link_evidence_update')
+            if not presentation_text and not public_review_text and sensitive_record(value) and any(k in value for k in ('source_locator', 'source', 'context')):
                 # Thin index references keep their link/index mapping, never roles,
                 # dates, transcript line locators, paraphrases or appraisals.
                 identity = {k: value[k] for k in ('link_id', 'evlist_index', 'index_base', 'row_index_0based') if k in value}
@@ -133,7 +168,7 @@ def prepare(source: Path, updated_at: str) -> tuple[str, dict, list[str], dict]:
             return output
         if not isinstance(value, str):
             return value
-        if not (path and path[0] == 'cld_presentation') and RAW_PERSON.search(value):
+        if not (path and path[0] in {'cld_presentation', 'link_evidence_update'}) and RAW_PERSON.search(value):
             counts['participant_level_narratives_withheld'] += 1
             return REDACTION_NOTE
         text = value
@@ -154,6 +189,7 @@ def prepare(source: Path, updated_at: str) -> tuple[str, dict, list[str], dict]:
         if entry.get('source_id') == 'canonical_revision':
             entry['original_url'] = entry['highlight_url'] = 'model-specification.html'
     deck = sanitize(deck)
+    validate_link_evidence(deck)
     deck['public_edition'] = {
         'updated_at': updated_at,
         'status': 'Working research presentation',
@@ -165,6 +201,8 @@ def prepare(source: Path, updated_at: str) -> tuple[str, dict, list[str], dict]:
         raise ValueError('Scene inventory changed during sanitization.')
     assets = sorted({s['visual']['src'] for s in deck['scenes']
                      if s.get('visual', {}).get('kind') in ('art', 'source-figure')})
+    if deck.get('link_evidence_update'):
+        assets = sorted(set(assets) | {deck['link_evidence_update']['methods']['figure_src']})
     for asset in assets:
         candidate = (source.parent / asset).resolve()
         if not candidate.is_relative_to(source.parent.resolve()) or not candidate.is_file():
@@ -192,7 +230,11 @@ def prepare(source: Path, updated_at: str) -> tuple[str, dict, list[str], dict]:
     # Initial HTML templates must not conceal machine paths outside deck-data.
     if LOCAL_URL.search(result) or WIN_PATH.search(result) or LOOPBACK.search(result):
         raise ValueError('An absolute/local URL remains in the public copy; no output written.')
-    if RAW_PERSON.search(json.dumps(deck, ensure_ascii=False)):
+    # The new projection is separately validated by original public URL and
+    # quotation hash. Published qualitative articles may legitimately discuss
+    # participants and consultations; that does not make them private records.
+    participant_audit_deck = {k: v for k, v in deck.items() if k != 'link_evidence_update'}
+    if RAW_PERSON.search(json.dumps(participant_audit_deck, ensure_ascii=False)):
         # Schema labels such as consultation source-kind counts are permitted;
         # participant-level narrative was removed above. Inspect only strings.
         def raw_strings(x):
@@ -202,7 +244,7 @@ def prepare(source: Path, updated_at: str) -> tuple[str, dict, list[str], dict]:
                 for v in x: yield from raw_strings(v)
             elif isinstance(x, str): yield x
         safe_notices = {REDACTION_NOTE, 'Unpublished consultation record; participant details withheld'}
-        if any(RAW_PERSON.search(x) for x in raw_strings(deck) if x not in safe_notices):
+        if any(RAW_PERSON.search(x) for x in raw_strings(participant_audit_deck) if x not in safe_notices):
             raise ValueError('A participant-level consultation string remains.')
     report = {
         'source_sha256': digest(source.read_bytes()), 'public_html_sha256': digest(result.encode()),
@@ -334,6 +376,70 @@ window.addEventListener('focus',checkRelease);setInterval(checkRelease,300000);
 </script>'''.replace('PUBLIC_CONFIG', config)
 
 
+def make_link_evidence_reader(deck: dict) -> str | None:
+    update = deck.get('link_evidence_update')
+    if not update:
+        return None
+    e = lambda value: escape(str(value), quote=True)
+    verdicts = {'Supports the sign': 'สนับสนุนทิศทาง', 'Qualifies': 'มีเงื่อนไข',
+                'Contrary sign': 'ทิศทางตรงข้าม', 'No effect': 'ไม่พบผลในกรณีนั้น',
+                'Reverse direction': 'ทิศทางย้อนกลับ', 'Definitional': 'นิยาม/กติกา'}
+    judgements = {'Sign supported': 'สอดคล้องกับทิศทาง', 'Sign supported with conditions': 'รองรับเมื่อมีเงื่อนไข',
+                  'Sign contested': 'ทิศทางยังมีข้อโต้แย้ง'}
+    def cite(row):
+        return f'<a href="{e(row["url"])}" target="_blank" rel="noopener noreferrer">({e(row["citation"])})</a>'
+    body = ['<header><a href="index.html?route=story&amp;mode=present&amp;scene=JC-CLD-STORY&amp;cldView=relationship">← กลับสู่สไลด์</a>',
+            '<h1>หลักฐานประกอบ 66 causal links</h1><p>ชุดทบทวน 31 ตุลาคม 2569</p>',
+            '<p>' + e(update['boundary_th']) + '</p></header>',
+            '<details id="methods"><summary>วิธีค้น การคัดเลือก และขอบเขตการนับ</summary>',
+            '<p>1,034 รายการข้อความ–ความสัมพันธ์ที่นับได้; แสดงข้อความจากลิงก์สาธารณะ 885 รายการ และไม่เผยแพร่ข้อความ 149 รายการจากชุดปรึกษาหารือ</p>',
+            '<figure><a href="' + e(update['methods']['figure_src']) + '"><img src="' + e(update['methods']['figure_src']) + '" alt="PRISMA-ScR ตามชุดทบทวนที่ได้รับ"></a><figcaption>แผนภาพตามที่ผู้ทบทวนส่งมา; กล่องแหล่งค้นด้านบนเป็นจำนวนหลังตัดซ้ำ</figcaption></figure><ul>']
+    body += ['<li>' + e(note) + '</li>' for note in update['methods']['notes_th']]
+    body += ['</ul></details><nav aria-label="เลือกความสัมพันธ์">']
+    body += [f'<a href="#{e(lid)}">{e(lid)}</a>' for lid in update['links']]
+    body += ['</nav>']
+    names = {n['id']: n['label'] for n in deck['cld_story']['nodes']}
+    for lid, review in update['links'].items():
+        sig = review['signature'];by_id = {r['id']: r for r in review['rows']}
+        sign = '−' if sig['polarity'] == '-' else '+'
+        body += [f'<section id="{e(lid)}"><h2>{e(lid)} · {e(judgements.get(review["judgement_reported"], review["judgement_reported"]))}</h2>',
+                 '<p class="relation">' + e(names[sig['from']]) + f' → ({sign}) ' + e(names[sig['to']]) + '</p>']
+        for claim in review['claims']:
+            refs = list({by_id[rid]['url']: by_id[rid] for rid in claim['row_ids']}.values())
+            body += ['<p class="claim">' + e(claim['text_th']) + ' ' + ' '.join(cite(r) for r in refs) + '</p>']
+        if review['scope_note_th']:
+            body += ['<p class="note">' + e(review['scope_note_th']) + '</p>']
+        body += ['<p class="note">' + e(f'ผลประเมินความอิ่มตัวที่รายงาน: {review["saturation_reported"]}; {review["counted_contributions"]} รายการที่นับได้ แสดงข้อความสาธารณะ {review["public_counted_rows"]} รายการ ไม่เผยแพร่ข้อความ {review["withheld_counted_rows"]} รายการ') + '</p>',
+                 '<dl class="tallies">']
+        for verdict, count in review['verdict_counts_reported'].items():
+            body += ['<dt>' + e(verdicts.get(verdict, verdict)) + '</dt><dd>' + e(count) + '</dd>']
+        body += ['</dl>']
+        for row in review['rows']:
+            body += [f'<details class="record" id="{e(row["id"])}"><summary>{e(verdicts.get(row["verdict"], row["verdict"]))} · {e(row["citation"])} · {e(row["locator"])}</summary>',
+                     '<p>' + cite(row) + ' · ' + e(row['evidence_type']) + '</p>']
+            if row['polarity_reading']:
+                body += ['<h3>เหตุผลที่อ่านทิศทางเช่นนี้</h3><p>' + e(row['polarity_reading']) + '</p>']
+            if row['synthesis']:
+                body += ['<p>' + e(row['synthesis']) + '</p>']
+            body += ['<p class="note">' + e(row['id'] + ' · ' + row['locator']) + '</p><blockquote><mark>' + e(row['quote']) + '</mark></blockquote>']
+            if row['english_rendering'] and row['english_rendering'] != row['quote']:
+                body += ['<details><summary>English rendering supplied by the reviewer</summary><p>' + e(row['english_rendering']) + '</p></details>']
+            body += ['<dl>']
+            for label, value in [('บริบท', row['setting']), ('ส่วนของกลไก', row['components']),
+                                 ('ความลึกการอ่านตามทะเบียน', row['how_read']), ('การตรวจข้อความตามทะเบียน', row['quote_check_reported'])]:
+                if value:
+                    body += ['<dt>' + e(label) + '</dt><dd>' + e(value) + '</dd>']
+            body += ['</dl>']
+            if row.get('geography_note_th'):
+                body += ['<p class="note">' + e(row['geography_note_th']) + '</p>']
+            if row['normative_type_flag'] or row['definitional']:
+                body += ['<p class="note">ข้อความเชิงกติกา/แนวทาง ไม่ใช่ผลกระทบที่วัดได้โดยตัวมันเอง</p>']
+            body += ['</details>']
+        body += ['<p><a href="#methods">วิธีทบทวน</a> · <a href="#top">กลับด้านบน</a></p></section>']
+    css = 'body{max-width:1020px;margin:auto;padding:35px 24px;font:19px/1.55 Helvetica,Arial,sans-serif;color:#1d1d1f;background:#fff}a{color:#06c}h1{font-size:40px;line-height:1.2}h2{font-size:29px;line-height:1.3}h3{font-size:21px}.relation{font-weight:600;font-size:23px}.claim{font-size:21px}.note,figcaption{color:#6e6e73;font-size:16px}section{margin:45px 0;border-top:1px solid #d2d2d7;padding-top:18px;scroll-margin-top:20px}nav{display:flex;flex-wrap:wrap;gap:8px;margin:25px 0}nav a{border:1px solid #d2d2d7;padding:4px 9px;border-radius:8px}.record{border:1px solid #e5e5ea;padding:12px 16px;border-radius:10px;margin:10px 0}summary{cursor:pointer}blockquote{margin:18px 0;padding:10px 14px;border-left:3px solid #d2d2d7;overflow-wrap:anywhere;line-height:1.6}mark{background:#fff1ac;color:inherit}dt{font-weight:600}dd{margin:0 0 10px}.tallies{display:grid;grid-template-columns:1fr auto;max-width:500px;gap:2px 20px}.tallies dd{margin:0}img{max-width:100%;height:auto}*{box-sizing:border-box;overflow-wrap:anywhere}@media(max-width:600px){body{padding:24px 18px;font-size:18px}h1{font-size:32px}h2{font-size:25px}.relation{font-size:20px}.record{padding:10px}}'
+    return '<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>4PW · Link evidence</title><style>' + css + '</style>' + make_public_font_css() + '</head><body id="top">' + ''.join(body) + '</body></html>'
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--source', type=Path, default=DEFAULT_SOURCE)
@@ -346,6 +452,7 @@ def main():
     source = args.source.resolve()
     html, deck, assets, report = prepare(source, updated_at)
     specification = make_model_specification(deck) if deck.get('canonical_revision') else None
+    link_evidence = make_link_evidence_reader(deck)
     if not args.check:
         output = args.output.resolve()
         if output == source.parent or not output.is_relative_to(PROJECT.resolve()):
@@ -354,6 +461,8 @@ def main():
         (output / 'index.html').write_text(html, encoding='utf-8', newline='\n')
         if specification:
             (output / 'model-specification.html').write_text(specification, encoding='utf-8', newline='\n')
+        if link_evidence:
+            (output / 'link-evidence.html').write_text(link_evidence, encoding='utf-8', newline='\n')
         for relative in assets:
             target = output / relative
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -363,10 +472,11 @@ def main():
         (output / 'SOURCE_NOTES.md').write_text(
             '# Public edition\n\nWorking research presentation; updated ' + updated_at + '.\n\n' +
             PRIVATE_NOTE + '\n\n' + REDACTION_NOTE + '\n\n' +
-            'Published citations link to their original sources. Candidate literature is provisional; screening labels do not establish inclusion or causal support. Original source figures retain their attribution and recorded CC BY-NC 4.0 licence. No private source files, raw candidate abstract exports or font binaries are distributed.\n', encoding='utf-8', newline='\n')
+            'Published citations link to their original sources. Candidate literature is provisional; screening labels do not establish inclusion or causal support. Original source figures retain their attribution and recorded CC BY-NC 4.0 licence. No private source files, raw candidate abstract exports or font binaries are distributed.\n\n' +
+            'The supplied causal-link review reports 1,034 counted sentence-link contributions, not independent studies. This public edition presents 885 contributions from public source URLs across all 66 causal links; 149 unpublished consultation contributions are withheld. Reviewer direction and saturation assessments do not automatically alter the scientific model or establish causal validation. The supplied PRISMA-ScR figure retains its original counts and is accompanied by reconciliation notes.\n', encoding='utf-8', newline='\n')
         # The manifest is deliberately public-safe: no paths or withheld content.
         manifest = {'updated_at': updated_at, 'logical_pages': len(deck['scenes']), 'files': []}
-        for relative in ['index.html', '.nojekyll', 'version.json', 'SOURCE_NOTES.md', *(['model-specification.html'] if specification else []), *assets]:
+        for relative in ['index.html', '.nojekyll', 'version.json', 'SOURCE_NOTES.md', *(['model-specification.html'] if specification else []), *(['link-evidence.html'] if link_evidence else []), *assets]:
             f = output / relative
             manifest['files'].append({'path': relative, 'sha256': digest(f.read_bytes()), 'bytes': f.stat().st_size})
         (output / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8', newline='\n')

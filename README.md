@@ -4,7 +4,7 @@
 
 **Bridging the Policy-Implementation Gap in Thailand’s Participatory Public Policy Process Based on Wisdom (4PW): A Realist and Systems Thinking Synthesis Through Collaborative Governance and Social Participation Lenses**
 
-A research proposal and qualified synthesis, organised around Why, Concepts, Design, Lenses, Findings and Discussion. The main route has 22 pages, with a complete 56-page evidence library. Each content page presents a question, a Thai key conclusion, supporting points and source links. The revised CLD contains 49 variables (12 stocks, 23 flows, 14 converters), 66 causal links, 24 stock–flow connections and 35 named loops.
+A research proposal and qualified synthesis, organised around Why, Concepts, Design, Lenses, Findings and Discussion. The main route has 22 pages, with a complete 62-page evidence library. Each content page presents a question, a Thai key conclusion, supporting points and source links. The revised CLD contains 49 variables (12 stocks, 23 flows, 14 converters), 66 causal links, 24 stock–flow connections and 35 named loops.
 
 The CLD follows the supplied revision exactly: 35 loop starts, all 237 ordered relationship steps including reused links, 35 closures, 14 remaining connections and one final overview, for 322 steps. Both presentation routes use this same walk. The default Build the full map view retains R1 as R2 grows from shared variables, then accumulates every later loop. A new connection appears only when both endpoint variables have been introduced; reused connections are highlighted at their next narrative step. Each current loop is named from its first frame: its code appears on the diagram and its full name appears in the caption. A dashed code glyph indicates a loop being assembled; at closure it becomes solid and gains its full name underneath. The circular glyph, code and full name form one black annotation inside the loop’s open interior. Adaptive wrapping keeps titles complete, and completed annotations remain with the accumulated map. The final overview contains all 35 named loop markers and a clickable list. One loop at a time remains available as an optional focused view. Use Fit for the accumulated map, ซูมวงนี้ for the current loop, or the zoom/pan controls for detail.
 
@@ -18,6 +18,10 @@ All 35 loops follow the supplied Thai/English summaries and 237 step-by-step cau
 
 The presentation distinguishes proposed methods, source findings, provisional model relationships and conditional implications. A closed diagram does not establish observed causal feedback. Original figures retain their attribution and licence; unpublished participant-level records are not distributed.
 
+After the complete CLD, a 22-stage synthesis highlights combinations of existing loops across five policy-process breaks. Shared relationships remain selected; unrelated loops become gray. Each archetype reading states its structural fit and missing or contested mechanism. These are testable explanations, not evidence that every proposed trap operates throughout Thailand. The five closing pages connect this diagnosis to three candidate levers, practical responsibilities, five proposed reconnections, an implementation-and-testing sequence, and the final take-home message. Loop membership counts guide investigation; they do not rank intervention effectiveness.
+
+[Read the relationship-level evidence](https://smartwoo.github.io/4pw-journal-club/link-evidence.html). The supplied review covers all 66 causal links. Its 1,034 counted sentence–link contributions include repeated use across relationships and are not independent studies. The public edition presents 885 contributions with original-source URLs, exact supplied excerpts, locators, reviewer interpretation and reading-depth limitations. Another 149 counted contributions from unpublished consultations are withheld. The review's 326 source labels still require study-family reconciliation. Reviewer judgements and saturation labels are attributed assessments and do not automatically change model polarity, establish causal validity or demonstrate an intervention's effectiveness. The supplied PRISMA-ScR figure is accompanied by reconciliation notes; its top source boxes represent post-deduplication assignments.
+
 ## Updating the public edition
 
 Build the latest working deck locally:
@@ -27,7 +31,7 @@ python .\site\build_public_site.py --check
 python .\site\build_public_site.py
 ```
 
-The script reads the latest `4PW-journal-club_preview.html`, writes a separate `site/dist/index.html`, and copies only the nine abstract PNGs and four attributed source-figure JPGs requested by the page. It never edits the working HTML. No licensed font binaries, work folders, downloaded papers, raw attachments or original model/manuscript files are copied.
+The script reads the latest `4PW-journal-club_preview.html`, writes a separate `site/dist/index.html`, and copies only the nine abstract PNGs, four attributed source-figure JPGs and supplied PRISMA-ScR PNG requested by the page. Closing illustrations are native SVG. It also generates the model-specification and relationship-evidence readers. It never edits the working HTML. No licensed font binaries, work folders, downloaded papers, raw attachments or original model/manuscript files are copied.
 
 After the chosen GitHub repository is connected and Pages uses GitHub Actions, run `./site/Publish-Latest.ps1` from the project folder to rebuild the public edition and push it. The workflow deploys the update to the same URL. `-BuildOnly` rebuilds without Git or publishing. The script checks that Git is isolated to this `site` folder and stages only the reviewed public bundle and deployment files. It never stages the broader research project.
 
