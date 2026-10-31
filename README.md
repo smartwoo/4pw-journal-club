@@ -2,6 +2,8 @@
 
 [Read the presentation](https://smartwoo.github.io/4pw-journal-club/?route=story&mode=read&scene=JC01&step=1) · [Present](https://smartwoo.github.io/4pw-journal-club/?route=story&mode=present&scene=JC01&step=1) · [Explore the CLD](https://smartwoo.github.io/4pw-journal-club/?route=story&mode=present&scene=JC-CLD-STORY&step=1)
 
+[Open the separate CLD Explorer](https://smartwoo.github.io/4pw-journal-club/cld-explorer/). This public edition preserves the supplied explorer's stock-and-flow/CLD tabs, diagrams, 28-loop model, 50 canonical causal links, interactive inspectors and animated views. It is a separate supplied model version; it does not replace the presentation's revised 35-loop model. Unpublished consultation and fieldwork records and related provenance excerpts are withheld. The public inspector explains these omissions; the supplied support assessments are retained without re-appraisal. The reviewed standalone source is in `standalone/cld-explorer/index.html` and is included in every public build.
+
 **Bridging the Policy-Implementation Gap in Thailand’s Participatory Public Policy Process Based on Wisdom (4PW): A Realist and Systems Thinking Synthesis Through Collaborative Governance and Social Participation Lenses**
 
 A research proposal and qualified synthesis, organised around Why, Concepts, Design, Lenses, Findings and Discussion. The main route has 22 pages, with a complete 62-page evidence library. Each content page presents a question, a Thai key conclusion, supporting points and source links. The revised CLD contains 49 variables (12 stocks, 23 flows, 14 converters), 66 causal links, 24 stock–flow connections and 35 named loops.

@@ -1,10 +1,13 @@
 {
-  "updated_at": "2026-10-31T12:39:15+07:00",
+  "updated_at": "2026-10-31T12:54:49+07:00",
   "logical_pages": 62,
+  "standalone_pages": [
+    "cld-explorer/index.html"
+  ],
   "files": [
     {
       "path": "index.html",
-      "sha256": "89da3024c06b943ea0b4d245a11987d70e255ff1420ecbc513d07c6dcb09578e",
+      "sha256": "981758cd8b74976917b40766dcd9050768b98f635b2c935919632fc12d5b384d",
       "bytes": 7159519
     },
     {
@@ -14,13 +17,13 @@
     },
     {
       "path": "version.json",
-      "sha256": "0e2f41b59812cf2345d894cd035571d7b0290a9d46f8c894087c8885a50f751a",
+      "sha256": "c6938d0c7ae24077074536bad74b7c0fec0922482f4e67a7026baa20192cefe4",
       "bytes": 99
     },
     {
       "path": "SOURCE_NOTES.md",
-      "sha256": "2a1008fc08e1bebf503fbb53ad2736609cab26a2abcc9c75656b1753ee0886ee",
-      "bytes": 1259
+      "sha256": "35e2d179b81ad6617c65b2d4d0252cbb1ef1048e8b7fc889df5a0f1d0873c0fd",
+      "bytes": 1687
     },
     {
       "path": "model-specification.html",
@@ -101,6 +104,11 @@
       "path": "assets/literature/rajan2019/figure-4.jpg",
       "sha256": "b7cba4aabe59af05a3b8568c72dfe0bd892696392f6aa0431baa293a484ca6fa",
       "bytes": 69241
+    },
+    {
+      "path": "cld-explorer/index.html",
+      "sha256": "e50e5509ec585f81f7f11c71c593bfb6e6707e172fe7b5e81a7a8e92a9a396cf",
+      "bytes": 5478160
     }
   ]
 }

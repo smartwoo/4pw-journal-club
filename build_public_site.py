@@ -18,6 +18,7 @@ import shutil
 PROJECT = Path(__file__).resolve().parents[1]
 DEFAULT_SOURCE = PROJECT / "4PW-journal-club_preview.html"
 DEFAULT_OUTPUT = Path(__file__).resolve().parent / "dist"
+STANDALONE_PAGES = {'cld-explorer/index.html': Path(__file__).resolve().parent / 'standalone/cld-explorer/index.html'}
 DATA_RE = re.compile(r'(<script id="deck-data" type="application/json">\s*)(.*?)(\s*</script>)', re.S)
 LOCAL_URL = re.compile(r'file:(?:/{1,3})[^\s<>"\]\)]+', re.I)
 WIN_PATH = re.compile(r'(?<![\w])(?:[A-Za-z]:[\\/])[^\r\n<>"\|]*')
@@ -50,6 +51,30 @@ def sensitive_record(obj: dict) -> bool:
 
 def digest(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
+
+
+def validated_standalone_pages() -> dict[str, bytes]:
+    pages = {}
+    for relative, source in STANDALONE_PAGES.items():
+        payload = source.read_bytes()
+        html = payload.decode('utf-8')
+        if '<meta name="public-edition"' not in html:
+            raise ValueError('The standalone explorer must be the reviewed public edition.')
+        if LOCAL_URL.search(html) or WIN_PATH.search(html) or LOOPBACK.search(html):
+            raise ValueError('The standalone public explorer contains a local-only target.')
+        match = re.search(r'\bconst D\s*=\s*', html)
+        if not match:
+            raise ValueError('The standalone explorer has no model data.')
+        data, _ = json.JSONDecoder().raw_decode(html[match.end():])
+        for element in data['el'].values():
+            for row in element.get('evlist', []):
+                label = ' '.join(str(row.get(k) or '') for k in ('kind', 'source', 'source_locator'))
+                if SOURCE_RECORD.search(label) and not re.match(r'https?://', row.get('url') or ''):
+                    raise ValueError('An unpublished source record remains in the public explorer.')
+        if len(data['loops']) != 28 or len(data['ce']) != 50:
+            raise ValueError('The separate explorer no longer matches its supplied model version.')
+        pages[relative] = payload
+    return pages
 
 
 def validate_link_evidence(deck: dict) -> None:
@@ -451,6 +476,7 @@ def main():
     datetime.fromisoformat(updated_at.replace('Z', '+00:00'))
     source = args.source.resolve()
     html, deck, assets, report = prepare(source, updated_at)
+    standalone_pages = validated_standalone_pages()
     specification = make_model_specification(deck) if deck.get('canonical_revision') else None
     link_evidence = make_link_evidence_reader(deck)
     if not args.check:
@@ -467,21 +493,26 @@ def main():
             target = output / relative
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source.parent / relative, target)
+        for relative, payload in standalone_pages.items():
+            target = output / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(payload)
         (output / '.nojekyll').write_text('', encoding='utf-8', newline='\n')
         (output / 'version.json').write_text(json.dumps({'revision': report['public_html_sha256'][:12], 'updated_at': updated_at, 'entry_url': './'}, indent=2) + '\n', encoding='utf-8', newline='\n')
         (output / 'SOURCE_NOTES.md').write_text(
             '# Public edition\n\nWorking research presentation; updated ' + updated_at + '.\n\n' +
             PRIVATE_NOTE + '\n\n' + REDACTION_NOTE + '\n\n' +
             'Published citations link to their original sources. Candidate literature is provisional; screening labels do not establish inclusion or causal support. Original source figures retain their attribution and recorded CC BY-NC 4.0 licence. No private source files, raw candidate abstract exports or font binaries are distributed.\n\n' +
-            'The supplied causal-link review reports 1,034 counted sentence-link contributions, not independent studies. This public edition presents 885 contributions from public source URLs across all 66 causal links; 149 unpublished consultation contributions are withheld. Reviewer direction and saturation assessments do not automatically alter the scientific model or establish causal validation. The supplied PRISMA-ScR figure retains its original counts and is accompanied by reconciliation notes.\n', encoding='utf-8', newline='\n')
+            'The supplied causal-link review reports 1,034 counted sentence-link contributions, not independent studies. This public edition presents 885 contributions from public source URLs across all 66 causal links; 149 unpublished consultation contributions are withheld. Reviewer direction and saturation assessments do not automatically alter the scientific model or establish causal validation. The supplied PRISMA-ScR figure retains its original counts and is accompanied by reconciliation notes.\n\n' +
+            'The separate cld-explorer/ page preserves its supplied earlier 28-loop model and 50 canonical causal links. Its public edition omits 148 unpublished consultation/fieldwork record occurrences and associated private provenance excerpts, while retaining 413 literature record occurrences. These counts belong to that separate source version; they are not independent studies or a replacement for the presentation\'s revised model.\n', encoding='utf-8', newline='\n')
         # The manifest is deliberately public-safe: no paths or withheld content.
-        manifest = {'updated_at': updated_at, 'logical_pages': len(deck['scenes']), 'files': []}
-        for relative in ['index.html', '.nojekyll', 'version.json', 'SOURCE_NOTES.md', *(['model-specification.html'] if specification else []), *(['link-evidence.html'] if link_evidence else []), *assets]:
+        manifest = {'updated_at': updated_at, 'logical_pages': len(deck['scenes']), 'standalone_pages': list(standalone_pages), 'files': []}
+        for relative in ['index.html', '.nojekyll', 'version.json', 'SOURCE_NOTES.md', *(['model-specification.html'] if specification else []), *(['link-evidence.html'] if link_evidence else []), *assets, *standalone_pages]:
             f = output / relative
             manifest['files'].append({'path': relative, 'sha256': digest(f.read_bytes()), 'bytes': f.stat().st_size})
         (output / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8', newline='\n')
         (Path(__file__).parent / 'public-build-audit.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8', newline='\n')
-    print(json.dumps({'check_only': args.check, 'logical_pages': len(deck['scenes']), 'assets': len(assets), 'transforms': report['transforms'], 'source_sha256': report['source_sha256'], 'deployment_performed': False}, ensure_ascii=True))
+    print(json.dumps({'check_only': args.check, 'logical_pages': len(deck['scenes']), 'assets': len(assets), 'standalone_pages': list(standalone_pages), 'transforms': report['transforms'], 'source_sha256': report['source_sha256'], 'deployment_performed': False}, ensure_ascii=True))
 
 
 if __name__ == '__main__':
