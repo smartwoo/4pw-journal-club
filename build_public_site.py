@@ -42,7 +42,10 @@ RAW_CANDIDATE_FIELDS = {
 
 
 def sensitive_record(obj: dict) -> bool:
-    return bool(SOURCE_RECORD.search(' '.join(str(obj.get(k, '')) for k in ('kind', 'source', 'source_locator'))))
+    # A provenance dictionary is not a participant record. Inspect the actual
+    # string record labels rather than flattening an entire nested narrative.
+    labels = [obj[k] for k in ('kind', 'source', 'source_locator') if isinstance(obj.get(k), str)]
+    return bool(SOURCE_RECORD.search(' '.join(labels)))
 
 
 def digest(data: bytes) -> str:
@@ -107,7 +110,8 @@ def prepare(source: Path, updated_at: str) -> tuple[str, dict, list[str], dict]:
         if isinstance(value, list):
             return [sanitize(item, path + (i,)) for i, item in enumerate(value)]
         if isinstance(value, dict):
-            if sensitive_record(value) and any(k in value for k in ('source_locator', 'source', 'context')):
+            presentation_text = bool(path and path[0] == 'cld_presentation')
+            if not presentation_text and sensitive_record(value) and any(k in value for k in ('source_locator', 'source', 'context')):
                 # Thin index references keep their link/index mapping, never roles,
                 # dates, transcript line locators, paraphrases or appraisals.
                 identity = {k: value[k] for k in ('link_id', 'evlist_index', 'index_base', 'row_index_0based') if k in value}
@@ -117,6 +121,11 @@ def prepare(source: Path, updated_at: str) -> tuple[str, dict, list[str], dict]:
                 return identity
             output = {}
             for key, item in value.items():
+                if presentation_text and key in {'raw', 'raw_text', 'raw_section', 'raw_revised_title_summary_section', 'raw_revised_steps_section'}:
+                    # Structured Original/Revised fields retain the complete
+                    # supplied text; raw attachment duplicates remain local.
+                    counts['supplied_narrative_raw_duplicates_omitted'] += 1
+                    continue
                 if key == 'source_json_path':
                     counts['technical_source_paths_removed'] += 1
                     continue
@@ -124,7 +133,7 @@ def prepare(source: Path, updated_at: str) -> tuple[str, dict, list[str], dict]:
             return output
         if not isinstance(value, str):
             return value
-        if RAW_PERSON.search(value):
+        if not (path and path[0] == 'cld_presentation') and RAW_PERSON.search(value):
             counts['participant_level_narratives_withheld'] += 1
             return REDACTION_NOTE
         text = value
@@ -236,13 +245,41 @@ def make_model_specification(deck: dict) -> str:
     chunks = ['<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>4PW model specification</title>', make_public_font_css(), '''<style>
 :root{--font:Helvetica,"Journal Public Latin","DB Helvethaica X","Journal Public Leelawadee","Journal Public Tahoma",Arial,sans-serif}body{margin:0;background:#fff;color:#1d1d1f;font:28px/1.4 var(--font)}main{max-width:1200px;margin:auto;padding:48px 28px}h1{font-size:64px;line-height:1.1;letter-spacing:-.02em}h2{font-size:42px;margin-top:54px}h3{font-size:31px}a{color:#06c}nav{display:flex;flex-wrap:wrap;gap:14px;font-size:22px}.lead{font-size:33px;font-weight:700}.note{color:#6e6e73;font-size:23px}details{border-bottom:1px solid #e5e5ea;padding:18px 0;scroll-margin-top:20px}summary{cursor:pointer;font-weight:700}li{padding:10px 0}table{width:100%;border-collapse:collapse;font-size:23px}th,td{border-bottom:1px solid #ddd;text-align:left;vertical-align:top;padding:12px 10px}th{background:#f5f5f7}.table-scroll{overflow:auto;max-width:100%;min-width:0}details,summary,li,p{overflow-wrap:anywhere;min-width:0}.positive{color:#159ab5}.negative{color:#dc6278}.tag{font-size:22px;color:#666}section{scroll-margin-top:20px}.badge{font-size:21px;color:#77541d}code{font-size:.75em;overflow-wrap:anywhere}@media(max-width:650px){main{padding:28px 20px}h1{font-size:48px}h2{font-size:36px}body{font-size:27px}.lead{font-size:30px}table{min-width:650px}}@media print{details{break-inside:avoid}nav{display:none}}
 </style></head><body><main><nav><a href="index.html?route=story&amp;mode=present&amp;scene=JC-CLD-STORY&amp;step=1">Back to slides</a><a href="#walk">Loop sequence</a><a href="#variables">Variables</a><a href="#connections">Connections</a><a href="#ledger-reconciliation">Ledger reconciliation</a></nav><h1>4PW model specification</h1><p class="lead">49 variables · 66 causal links · 24 stock–flow connections · 35 named loops</p><p class="note">Public rendering of the latest researcher-supplied specification used by these slides. It preserves the ordered walk, labels, polarity, delays and mechanism statements. This is a proposed programme theory, not an independently validated causal model.</p><p class="note">The 16 added causal links are analogical proposals. Their supporting 42-loop dossier is not supplied here. Stock–flow identities are accounting relations; prior-ledger records and structural closure do not constitute new causal validation.</p>''']
-    chunks.append('<p class="note">Specification fingerprint: <code>'+h(revision['source_sha256'][:16])+'</code></p><h2 id="walk">The exact loop sequence</h2>')
-    narrative = deck.get('cld_presentation', {}).get('loops', {}).get('R1')
-    if narrative:
-        chunks.append('<section id="R1-narrative"><h2>R1 · '+h(narrative['title_en'])+'</h2><p class="lead">'+h(narrative['title_th'])+'</p><p class="note">Presentation narrative supplied for this model. The canonical R1 path, signs and evidence records remain unchanged. This wording is a mechanism proposition, not a new empirical appraisal.</p><blockquote>'+h(narrative['summary_th'])+'</blockquote><details><summary>English summary</summary><p>'+h(narrative['summary_en'])+'</p></details><p class="note">'+h(narrative['boundary_th'])+'</p><ol>')
+    chunks.append('<p class="note">Specification fingerprint: <code>'+h(revision['source_sha256'][:16])+'</code></p>')
+    narratives = deck.get('cld_presentation', {}).get('loops', {})
+    if narratives:
+        chunks.append('<h2 id="presentation-narratives">Original and revised loop narratives</h2><p class="note">Presentation codes follow the revised narrative order. Original scientific IDs remain attached to the source model and evidence. These explanations are researcher-supplied programme theory, not a new causal appraisal.</p>')
+    for loop in model['loops']:
+        narrative = narratives.get(loop['id'])
+        if not narrative:
+            continue
+        code=narrative.get('display_id',loop['id']);original=narrative.get('original',{})
+        chunks.append('<section class="presentation-narrative" id="'+h(loop['id'])+'-narrative"><h2>Loop '+str(narrative.get('order',loop['story_order_1based']))+' of 35 · '+h(code)+' · '+h(narrative['title_en'])+'</h2><p class="lead">'+h(narrative['title_th'])+'</p>')
+        chunks.append('<details class="narrative-original"><summary>ส่วนที่ 1: ข้อมูลต้นฉบับ · Original Version</summary>')
+        if 'canonical' in str(original.get('status','')):
+            chunks.append('<p class="note">This original section is derived from the canonical model for comparison with the supplied revised narrative.</p>')
+        chunks.append('<h3>Original Title</h3><p>'+h(original.get('title',loop['id']+' · '+loop['name']))+'</p><p>'+h(original.get('starting_point',''))+'</p><ol>')
+        for index,raw in enumerate(original.get('links',[])):
+            prefix='<p>'+relation(edges[loop['edge_ids'][index]])+'</p>'if 'canonical'in str(original.get('status',''))else''
+            chunks.append('<li>'+prefix+h(str(raw).replace('→ (-)','→ (−)'))+'</li>')
+        chunks.append('</ol><p>'+h(original.get('closure',''))+'</p><a href="#'+h(loop['id'])+'">Original model path and evidence</a></details>')
+        chunks.append('<h3>ส่วนที่ 2: ชื่อและสาระสำคัญฉบับปรับ · Revised Title &amp; Summary</h3><p>Original: '+h(loop['id']+' · '+loop['name'])+'</p><p>Revised: '+h(code+' · '+narrative['title_en'])+'</p><blockquote class="narrative-summary-th">'+h(narrative['summary_th'])+'</blockquote><details><summary>English summary</summary><p class="narrative-summary-en">'+h(narrative.get('summary_en_display')or narrative['summary_en'])+'</p></details>')
+        chunks.append('<h3>ส่วนที่ 3: กลไกความเชื่อมโยงเชิงสาเหตุรายขั้น</h3><h4>ฉบับภาษาไทย</h4><ol class="narrative-th-steps">')
         for item in narrative['steps']:
-            chunks.append('<li><strong>'+h(item['thai']['heading'])+'</strong><p>'+h(item['thai']['body'])+'</p><details><summary>English narrative</summary><h3>'+h(item['english']['heading'])+'</h3><p>'+h(item['english']['body'])+'</p></details><a href="#'+h(item['edge_id'])+'">Inspect the canonical connection and evidence boundary</a></li>')
-        chunks.append('</ol></section>')
+            chunks.append('<li data-narrative-edge="'+h(item['edge_id'])+'"><strong>'+h(item['thai']['heading'])+'</strong><p>'+h(item['thai']['body'])+'</p><a href="#'+h(item['edge_id'])+'">'+h(item['edge_id'])+' · Inspect the canonical connection and evidence boundary</a></li>')
+        chunks.append('</ol><details><summary>English Version · all causal steps</summary><ol class="narrative-en-steps">')
+        for item in narrative['steps']:
+            english=item['english'];chunks.append('<li><strong>'+h(english.get('heading_display')or english['heading'])+'</strong><p>'+h(english.get('body_display')or english['body'])+'</p></li>')
+        chunks.append('</ol></details>')
+        if narrative.get('editorial_corrections'):
+            chunks.append('<details><summary>Terminology alignment</summary>')
+            for correction in narrative['editorial_corrections']:
+                if isinstance(correction,dict):
+                    before=correction.get('original')or correction.get('from')or correction.get('before','');after=correction.get('corrected')or correction.get('to')or correction.get('after','')
+                    chunks.append('<p>'+h(str(before))+' → '+h(str(after))+'</p><p>'+h(correction.get('reason',''))+'</p>')
+            chunks.append('</details>')
+        chunks.append('<p class="note">'+h(narrative.get('boundary_th',''))+'</p></section>')
+    chunks.append('<h2 id="walk">Original source sequence · canonical IDs</h2>')
     for loop in model['loops']:
         chunks.append(f'<details class="loop" id="{h(loop["id"])}"><summary>{loop["story_order_1based"]}. {h(loop["id"])} · {h(loop["name"])}</summary><p>{h(loop["thai_name"])}</p><p class="note">{h(loop["source_stage"])} · {h(loop["computed_type"])} · {loop["negative_count"]} negative signs · {loop["delay_count"]} delayed links</p><ol>')
         for edge_id in loop['edge_ids']:
