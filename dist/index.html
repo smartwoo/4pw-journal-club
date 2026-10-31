@@ -942,6 +942,10 @@ svg .loop-glyph-arrowhead{fill:#000!important}
 .link-evidence-prisma{margin:20px 0}.link-evidence-prisma img{width:100%;height:auto;display:block}.link-evidence-prisma figcaption{font-size:20px;color:#6e6e73;margin-top:10px}.link-evidence-audit-note{background:#fff5df;padding:10px;border-radius:8px}
 @media(max-width:800px){.link-evidence-snapshot{font-size:23px}.link-evidence-full,.link-evidence-row{font-size:22px}.link-evidence-metadata{display:block}.link-evidence-metadata dt{margin-top:10px}.link-evidence-row{padding:10px 12px}}
 
+
+/* Constrain the supplied PRISMA figure to its native slide grid cell. */
+.link-review-overview .review-prisma-figure img{flex:1;min-height:0;height:100%!important;max-height:100%!important;object-fit:contain}
+.link-review-overview .review-prisma-figure figcaption{flex:none}
 </style>
 <style id="public-font-fallback">
 @font-face{font-family:"Journal Public Latin";src:local("Arial"),local("Roboto"),local("Liberation Sans");font-style:normal;font-weight:300 600;font-display:swap;size-adjust:68.5%;unicode-range:U+0000-0DFF,U+0E80-10FFFF}
@@ -133299,7 +133303,7 @@ svg.motion-active .fw-motion-line{animation:fw-findings-draw .70s ease-out var(-
     "scientific_model_changed": false
   },
   "public_edition": {
-    "updated_at": "2026-10-31T12:21:03+07:00",
+    "updated_at": "2026-10-31T12:34:35+07:00",
     "status": "Working research presentation",
     "private_material_boundary": "Original unpublished source files are not distributed in this public edition.",
     "consultation_redaction": "Participant-level consultation details are omitted from the public edition. The working ledger retains the original record. Recorded contribution counts and review-depth assessments have not been recalculated after this omission; they are not independent causal validation.",
@@ -134613,7 +134617,7 @@ function cldStorySceneNode(scene, stepIndex, {allSteps=false}={}) {
     const padding=24+width*18/screenWidth;width+=padding*2;height+=padding*2;
     width=Math.max(width,height*aspect);
     // A short stock-flow segment should not produce an oversized node label.
-    if(capLabelSize)width=Math.max(width,screenWidth*28/30);
+    if(capLabelSize)width=Math.max(width,screenWidth*28/(30*presentationUIScale()));
     height=width/aspect;
     return{x:(x+right-width)/2,y:(y+bottom-height)/2,width,height};
   }
@@ -134884,7 +134888,7 @@ function statusQuoInstallStyle(){
 .status-quo-synthesis .cld-story__graph-caption{font-size:19px;line-height:1.15;color:#6e6e73}
 .status-quo-synthesis .cld-story__boundary{font-size:17px;line-height:1.2;color:#6e6e73;margin-top:6px}
 .status-quo-synthesis .cld-story__narrative{min-height:0;overflow:auto;overscroll-behavior:contain;padding-bottom:24px}
-.status-quo-synthesis .cld-story__narrative{scroll-margin-top:calc(var(--header) + var(--synthesis-nav-height,70px) + 12px)}
+.status-quo-synthesis .cld-story__narrative{scroll-margin-top:calc(var(--header) + var(--synthesis-dock-height,220px) + 12px)}
 .status-quo-synthesis .status-quo__controls{display:grid;grid-template-columns:1fr 1fr auto;gap:7px 8px;flex:none;margin:0 0 12px}
 .status-quo__stage-label{grid-column:1/-1;display:flex;align-items:center;gap:10px;font-size:20px;color:#6e6e73;min-width:0}
 .status-quo__stage-select{flex:1;min-width:0;border:1px solid #d2d2d7;border-radius:8px;background:#fff;color:#1d1d1f;font:inherit;font-size:21px;padding:5px 7px}
@@ -134927,10 +134931,14 @@ function statusQuoInstallStyle(){
 .status-quo__break-tab:hover,.status-quo__break-tab:focus-visible{border-color:#0071e3;background:#f5f9ff;outline-offset:2px}
 .status-quo__break-tab[aria-current="step"]{border-color:#0071e3;background:#eef5ff;color:#0057b8}
 .status-quo__break-tab[aria-current="step"] b{color:#0057b8}
-.mode-read .status-quo__break-nav{position:sticky;top:var(--header);box-shadow:0 5px 10px -8px #9ca9bc}
-.mode-read .status-quo-synthesis .cld-story__panel{top:calc(var(--header) + var(--synthesis-nav-height,70px) + 12px);height:calc(100dvh - var(--header) - var(--footer) - var(--synthesis-nav-height,70px) - 38px);min-height:0}
-@media(max-width:800px){.status-quo-synthesis .status-quo__break-nav{position:sticky;top:var(--header);padding:6px 0;background:#fff}.status-quo__break-tab{display:flex;flex-direction:column;justify-content:center;gap:3px;min-height:58px;padding:5px 2px;text-align:center}.status-quo__break-tab b{font-size:20px;line-height:1}.status-quo__break-tab span{font-size:17px;line-height:1.08}.mode-read .status-quo-synthesis .cld-story__panel{height:auto;min-height:0;max-height:none}.mode-read .status-quo-synthesis .cld-story__panel .cld-story__viewport,.mode-read .status-quo-synthesis .cld-story__panel .cld-story__viewport>svg{height:min(270px,32dvh)}}
-@media print{.status-quo__break-nav{display:none!important}.mode-read .status-quo-synthesis .cld-story__panel{position:static;top:auto;height:auto}}
+.status-quo__summary-dock{display:flex;flex-direction:column;gap:6px;flex:none;min-width:0;background:#fff;z-index:9;padding:3px 0 0}
+.status-quo__summary-dock>.cld-conclusion-label{margin:0;flex:none}
+.status-quo__summary-dock>.cld-story__intro{margin:0;flex:none}
+.status-quo__summary-dock .status-quo__break-nav{position:static;top:auto;box-shadow:none}
+.mode-read .status-quo__summary-dock{position:sticky;top:var(--header);box-shadow:0 5px 10px -8px #9ca9bc}
+.mode-read .status-quo-synthesis .cld-story__panel{top:calc(var(--header) + var(--synthesis-dock-height,220px) + 12px);height:calc(100dvh - var(--header) - var(--footer) - var(--synthesis-dock-height,220px) - 38px);min-height:0}
+@media(max-width:800px){.status-quo-synthesis .status-quo__summary-dock{position:sticky;top:var(--header);padding-top:5px;gap:3px}.status-quo__summary-dock>.cld-story__intro{font-size:23px!important;line-height:1.28!important}.status-quo__summary-dock>.cld-conclusion-label{font-size:17px}.status-quo-synthesis .status-quo__break-nav{position:static;top:auto;padding:5px 0;background:#fff}.status-quo__break-tab{display:flex;flex-direction:column;justify-content:center;gap:3px;min-height:54px;padding:5px 2px;text-align:center}.status-quo__break-tab b{font-size:20px;line-height:1}.status-quo__break-tab span{font-size:17px;line-height:1.08}.mode-read .status-quo-synthesis .cld-story__panel{height:auto;min-height:0;max-height:none}.mode-read .status-quo-synthesis .cld-story__panel .cld-story__viewport,.mode-read .status-quo-synthesis .cld-story__panel .cld-story__viewport>svg{height:clamp(120px,calc(100dvh - var(--header) - var(--synthesis-dock-height,240px) - var(--footer) - 330px),240px)}.status-quo-synthesis.cld-story--canvas-present .status-quo__summary-dock{order:2}.mode-read .status-quo-synthesis[data-freeze-graph="false"] .cld-story__panel{position:static}}
+@media print{.status-quo__break-nav{display:none!important}.status-quo-synthesis .status-quo__summary-dock,.mode-read .status-quo-synthesis .cld-story__panel{position:static;top:auto;height:auto}}
 .status-quo__framework{font-size:17px;line-height:1.25;color:#6e6e73;margin-top:10px}
 .status-quo__framework a{color:#6e6e73;text-underline-offset:3px}
 .status-quo__overview-note{font-size:23px;line-height:1.3;color:#6e6e73;margin:10px 0}
@@ -134977,8 +134985,8 @@ function statusQuoSynthesisSceneNode(scene,stepIndex,{allSteps=false,printing=fa
  const breakNav=el('nav','status-quo__break-nav'),breakTabs=[];breakNav.setAttribute('aria-label','เลือกช่องว่างทั้งห้า');
  const compactTitles=['เสียงและอิทธิพล','มติและการปฏิบัติ','ภารกิจและกำลัง','ข้อมูลและการเรียนรู้','บทเรียนและกติกา'];
  for(const [i,item]of breaks.entries()){const button=el('button','status-quo__break-tab');button.type='button';button.dataset.breakId=item.id;button.title=`${i+1}. ${item.title_th}`;button.setAttribute('aria-label',button.title);button.append(el('b','',String(i+1)),el('span','',compactTitles[i]||item.title_th));button.addEventListener('click',()=>update(frames.findIndex(frame=>frame.break_id===item.id),{scroll:allSteps,user:true}));breakTabs.push(button);breakNav.append(button)}
- controls.after(breakNav);
- const navResize=new ResizeObserver(()=>{const height=Math.ceil(breakNav.getBoundingClientRect().height);if(height>0)section.style.setProperty('--synthesis-nav-height',`${height}px`)});navResize.observe(breakNav);
+ const summaryDock=el('div','status-quo__summary-dock'),conclusionLabel=section.querySelector('.cld-conclusion-label');title.after(summaryDock);if(conclusionLabel)summaryDock.append(conclusionLabel);summaryDock.append(intro,breakNav);
+ const navResize=new ResizeObserver(()=>{const navHeight=Math.ceil(breakNav.getBoundingClientRect().height),dockHeight=Math.ceil(summaryDock.getBoundingClientRect().height);if(navHeight>0)section.style.setProperty('--synthesis-nav-height',`${navHeight}px`);if(dockHeight>0){section.style.setProperty('--synthesis-dock-height',`${dockHeight}px`);const header=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header'))||44;section.dataset.freezeGraph=String(innerHeight-header-dockHeight-52>=390)}});navResize.observe(summaryDock);navResize.observe(breakNav);
  const unique=ids=>[...new Set(ids||[])].filter(id=>loopMap.has(id));
  const loopButtons=(ids)=>{const wrap=el('div','status-quo__loops');for(const id of unique(ids)){const loop=loopMap.get(id),b=el('button','status-quo__loop',loopDisplayCode(loop));b.type='button';b.title=loopDisplayName(loop);b.dataset.loopId=id;b.setAttribute('aria-label',`${loopDisplayCode(loop)} · ${loopDisplayName(loop)} · inspect loop`);b.addEventListener('click',()=>openCumulativeLoop(loop));wrap.append(b)}return wrap};
  const evidenceButtons=ids=>{const wrap=el('div','status-quo__evidence'),valid=[...new Set(ids||[])].filter(id=>edgeMap.has(id));if(valid.length)wrap.append(el('span','status-quo__evidence-label','ตรวจหลักฐานรายเส้น'));for(const id of valid){const b=el('button','status-quo__evidence-link',id);b.type='button';b.dataset.edgeId=id;b.setAttribute('aria-label',`Inspect relationship ${id} and recorded evidence`);b.addEventListener('click',()=>openCanonicalRelationship(edgeMap.get(id),null));wrap.append(b)}return wrap};
@@ -135020,7 +135028,7 @@ function statusQuoSynthesisSceneNode(scene,stepIndex,{allSteps=false,printing=fa
   const before=deck.scenes.slice(0,state.index).reduce((sum,s)=>sum+s.steps.length,0),total=deck.scenes.reduce((sum,s)=>sum+s.steps.length,0),bar=document.querySelector('.progress');if(bar){const value=(before+active+1)/total*100;bar.style.width=`${value}%`;bar.setAttribute('aria-valuenow',String(Math.round(value)))}
   const rootPrev=document.querySelector('#previous'),rootNext=document.querySelector('#next');if(rootPrev)rootPrev.disabled=state.index===0&&active===0;if(rootNext)rootNext.disabled=state.index===deck.scenes.length-1&&active===frames.length-1;
  }
- function readingLine(){const mobile=matchMedia('(max-width:800px)').matches,obstruction=mobile?panel.getBoundingClientRect().bottom:Math.max(controls.getBoundingClientRect().bottom,breakNav.getBoundingClientRect().bottom);return Math.min(innerHeight-90,Math.max(obstruction+30,innerHeight*(mobile?.58:.32)))}
+ function readingLine(){const mobile=matchMedia('(max-width:800px)').matches,obstruction=mobile&&section.dataset.freezeGraph!=='false'?panel.getBoundingClientRect().bottom:Math.max(controls.getBoundingClientRect().bottom,summaryDock.getBoundingClientRect().bottom);return Math.min(innerHeight-90,Math.max(obstruction+30,innerHeight*(mobile ? .58 : .32)))}
  function update(index,{scroll=false,user=false}={}){
   if(disposed)return;active=Math.max(0,Math.min(frames.length-1,Number(index)||0));const frame=frames[active],br=breakMap.get(frame.break_id);
   section.dataset.step=allSteps?'all':String(active+1);section.dataset.synthesisStage=String(active);section.dataset.synthesisStageId=frame.id;
@@ -135160,7 +135168,44 @@ function closingSceneNode(scene,stepIndex=0,{allPoints=false}={}){
     if(scene.visual){const figure=visualFigure(scene);if(figure)section.append(figure)}
     return section;
   }
+/* Native large-display layout: physical CSS pixels, no transformed page/canvas. */
+let nativePresentationScale=1,nativePresentationSheet=null,nativePresentationSource='';
+function presentationUIScale(){return nativePresentationScale}
+function updateNativePresentationScale({printing=false}={}){
+ const enabled=!printing&&state.mode==='present'&&innerWidth>=2400&&innerHeight>=1350;
+ const scale=enabled?Math.min(3,innerWidth/1920,innerHeight/1080):1;
+ nativePresentationScale=scale;document.documentElement.style.setProperty('--native-ui-scale',String(scale));
+ document.documentElement.dataset.nativePresentation=enabled?'large':'standard';
+ if(!enabled){if(nativePresentationSheet)nativePresentationSheet.disabled=true;return}
+ // Install the two deferred HTML styles before measuring the native layout.
+ statusQuoInstallStyle();closingInstallStyle();
+ if(!nativePresentationSheet){nativePresentationSheet=document.createElement('style');nativePresentationSheet.id='native-presentation-resolution';nativePresentationSheet.media='screen';document.head.append(nativePresentationSheet)}
+ const sheets=[...document.styleSheets].filter(sheet=>sheet.ownerNode?.parentElement===document.head&&sheet.ownerNode!==nativePresentationSheet);
+ const signature=sheets.map(sheet=>sheet.ownerNode.textContent||sheet.href||'').join('\n');
+ if(signature!==nativePresentationSource){
+  const px=value=>value.replace(/(-?\d*\.?\d+)px\b/g,(whole,n)=>Number(n)===0?whole:`calc(${n}px * var(--native-ui-scale))`);
+  const world=/\.cld-(?:node|edge|loop-marker)(?:[\s.#:[>+~_-]|$)|\b(?:text|tspan)\b/;
+  const nonScalingStroke=/\.cld-edge__line|\.cld-edge__delay\s+line|\.cld-loop-marker__(?:arc|hit)|\.cld-node__circle/;
+  function rulesCSS(rules){let css='';for(const rule of rules){
+   if(rule.type===CSSRule.STYLE_RULE){
+    const isWorld=world.test(rule.selectorText);let declarations='';
+    for(const property of rule.style){const value=rule.style.getPropertyValue(property),priority=rule.style.getPropertyPriority(property);let adjusted=value;
+     if(isWorld){if(property==='stroke-width'&&nonScalingStroke.test(rule.selectorText)&&/^\d*\.?\d+(?:px)?$/.test(value.trim()))adjusted=`calc(${parseFloat(value)}px * var(--native-ui-scale))`;else continue}
+     else if(!['content','src','font-family'].includes(property))adjusted=px(value);
+     if(adjusted!==value)declarations+=`${property}:${adjusted}${priority?' !important':''};`;
+    }
+    if(declarations)css+=`${rule.selectorText}{${declarations}}\n`;
+   }else if(rule.type===CSSRule.MEDIA_RULE){if(!/\bprint\b/.test(rule.conditionText)){const nested=rulesCSS(rule.cssRules);if(nested)css+=`@media ${rule.conditionText}{${nested}}\n`}}
+   else if(rule.type===CSSRule.SUPPORTS_RULE){const nested=rulesCSS(rule.cssRules);if(nested)css+=`@supports ${rule.conditionText}{${nested}}\n`}
+  }return css}
+  let css='';for(const sheet of sheets){try{css+=rulesCSS(sheet.cssRules)}catch(error){/* A separately hosted stylesheet keeps its original rules. */}}
+  nativePresentationSheet.textContent=css;nativePresentationSource=signature;
+ }
+ nativePresentationSheet.disabled=false;
+}
+
   function render({printing=false,scrollToScene=true}={}){
+    updateNativePresentationScale({printing});
     document.documentElement.dataset.printing=String(printing);
     cldStoryDispose();
     const fragment=document.createDocumentFragment();
@@ -135236,6 +135281,7 @@ function closingSceneNode(scene,stepIndex=0,{allPoints=false}={}){
   window.addEventListener("beforeprint",()=>{printScrollY=window.scrollY;render({printing:true,scrollToScene:false})});
   window.addEventListener("afterprint",()=>{render({scrollToScene:false});document.fonts.ready.then(()=>requestAnimationFrame(()=>window.scrollTo(0,printScrollY)))});
   window.addEventListener("popstate",()=>{readURL();render()});
+  window.addEventListener("resize",()=>updateNativePresentationScale());
   readURL();render();
 })();
 </script>
@@ -135251,7 +135297,7 @@ function closingSceneNode(scene,stepIndex=0,{allPoints=false}={}){
 <aside class="public-status" aria-label="Public edition status"><span id="public-release-label"></span><button type="button" id="public-material-open">Source notes</button><span class="public-status__update" hidden><span>New revision available.</span><button type="button" id="public-reload">Reload</button></span></aside>
 <dialog class="public-material" id="study-material" aria-labelledby="study-material-title"><h2 id="study-material-title">Study materials and evidence boundary</h2><p>This is a working research presentation. Published sources remain linked to their original public pages where available. The study model, draft review protocols and candidate literature register are unpublished working materials; their original files are not included in this public edition. Some cited workshop documents are locally held and are also not distributed here; their original citation metadata is retained.</p><p>Participant-level consultation records, transcript locators and identifying role/date combinations are withheld. The public presentation retains the recorded model structure, source-contribution counts, support status and review-depth assessments. Those counts and assessments describe the original working ledger, include withheld contributions and have not been recomputed after redaction. They are not independent-study counts or causal validation.</p><p>Candidate references retain their provisional screening and reading-depth labels. This edition omits raw abstract-export fields. The planned reviews and hypotheses remain distinct from completed or independently verified findings.</p><p>Source figures retain their original attribution and the recorded CC BY-NC 4.0 licence. Fonts are requested from the viewer’s device; no font binaries are distributed.</p><p><a href="SOURCE_NOTES.md" target="_blank" rel="noopener noreferrer">Public-edition source notes</a></p><form method="dialog"><button>Close source notes</button></form></dialog>
 <script>
-(()=>{'use strict';const release={"updated_at": "2026-10-31T12:21:03+07:00"},material=document.getElementById('study-material');let lastCheck=0;
+(()=>{'use strict';const release={"updated_at": "2026-10-31T12:34:35+07:00"},material=document.getElementById('study-material');let lastCheck=0;
 const status=document.querySelector('.public-status');document.querySelector('.controls__tools')?.append(status);
 const date=new Date(release.updated_at);document.getElementById('public-release-label').textContent=new Intl.DateTimeFormat('en-GB',{dateStyle:'medium',timeZone:'Asia/Bangkok'}).format(date);status.title='Working research presentation · Updated '+new Intl.DateTimeFormat('en-GB',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Bangkok'}).format(date)+' ICT';
 function openMaterial(){if(!material.open)material.showModal()}
