@@ -4,9 +4,11 @@
 
 **Bridging the Policy-Implementation Gap in Thailand’s Participatory Public Policy Process Based on Wisdom (4PW): A Realist and Systems Thinking Synthesis Through Collaborative Governance and Social Participation Lenses**
 
-A research proposal and qualified synthesis, organised around Why, Concepts, Design, Lenses, Findings and Discussion. The main route has 22 pages, with a complete 56-page evidence library. Each content page presents a question, a Thai key conclusion, supporting points and source links. The CLD explorer retains 24 variables, 50 relationships and 28 named loop views, with relationship-level evidence and qualifications.
+A research proposal and qualified synthesis, organised around Why, Concepts, Design, Lenses, Findings and Discussion. The main route has 22 pages, with a complete 56-page evidence library. Each content page presents a question, a Thai key conclusion, supporting points and source links. The revised CLD contains 49 variables (12 stocks, 23 flows, 14 converters), 66 causal links, 24 stock–flow connections and 35 named loops.
 
-The CLD builds on one growing canvas, connecting R1 to R2 and onward through shared variables. Names appear before new arrows; polarity, delays and source evidence remain inspectable. The main walkthrough introduces each relationship once in 107 steps. The detailed 187-step route also retraces reused relationships. Use Current path or zoom to read individual loops within the final network overview.
+The CLD follows the supplied revision exactly: 35 loop starts, all 237 ordered relationship steps including reused links, 35 closures, 14 remaining connections and one final overview, for 322 steps. Both presentation routes use this same walk. Names appear before arrows, previous structure stays visible, and each loop continues from a variable already encountered. Use Current path or zoom to inspect the dense final overview.
+
+[Read the current model specification](https://smartwoo.github.io/4pw-journal-club/model-specification.html). This generated public reader preserves the model sequence and explains evidence boundaries. The 16 added causal links remain analogical proposals. Of the 50 original ledger endpoint/sign signatures, 49 match the revision and AA5 changes its target; the simplified old diagram was a separate projection. Signature agreement, stock–flow accounting and structural closure do not constitute causal validation.
 
 The presentation distinguishes proposed methods, source findings, provisional model relationships and conditional implications. A closed diagram does not establish observed causal feedback. Original figures retain their attribution and licence; unpublished participant-level records are not distributed.
 

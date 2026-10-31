@@ -1,8 +1,8 @@
 # Public edition
 
-Working research presentation; updated 2026-10-31T06:50:53+07:00.
+Working research presentation; updated 2026-10-31T07:46:38+07:00.
 
-Unpublished study material is not included in this public edition.
+Original unpublished source files are not distributed in this public edition.
 
 Participant-level consultation details are omitted from the public edition. The working ledger retains the original record. Recorded contribution counts and review-depth assessments have not been recalculated after this omission; they are not independent causal validation.
 

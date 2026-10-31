@@ -9,6 +9,7 @@ import argparse
 from collections import Counter
 from datetime import datetime, timezone, timedelta
 import hashlib
+from html import escape
 import json
 from pathlib import Path
 import re
@@ -27,7 +28,7 @@ RAW_PERSON = re.compile(
 SOURCE_RECORD = re.compile(r'consultation|transcript|fieldwork', re.I)
 PRIVATE_IDS = {'v27', 'v56', 'protocol4pw', 'cgr_protocol', 'cgr_candidates'}
 STUDY_TARGET = '#study-material'
-PRIVATE_NOTE = 'Unpublished study material is not included in this public edition.'
+PRIVATE_NOTE = 'Original unpublished source files are not distributed in this public edition.'
 REDACTION_NOTE = (
     'Participant-level consultation details are omitted from the public edition. '
     'The working ledger retains the original record. Recorded contribution counts '
@@ -80,6 +81,11 @@ def prepare(source: Path, updated_at: str) -> tuple[str, dict, list[str], dict]:
 
     # All private references remain labelled as unpublished working materials.
     for ref_id, ref in deck.get('references', {}).items():
+        if ref_id in {'canonical_revision', 'model_ledger_comparison'}:
+            ref['url'] = ref['original_url'] = 'model-specification.html' + ('#ledger-reconciliation' if ref_id == 'model_ledger_comparison' else '')
+            ref['public_access_note'] = 'Public rendering of the researcher-supplied specification; not an independently appraised evidence source.'
+            counts['model_specification_reader_links'] += 1
+            continue
         private = ref_id in PRIVATE_IDS or ref.get('working_material') is True
         local_target = any(str(ref.get(k, '')).lower().startswith('file:') for k in ('url', 'original_url'))
         if private:
@@ -135,6 +141,9 @@ def prepare(source: Path, updated_at: str) -> tuple[str, dict, list[str], dict]:
             counts['absolute_machine_paths_removed'] += n
         return text
 
+    for entry in deck.get('evidence', {}).values():
+        if entry.get('source_id') == 'canonical_revision':
+            entry['original_url'] = entry['highlight_url'] = 'model-specification.html'
     deck = sanitize(deck)
     deck['public_edition'] = {
         'updated_at': updated_at,
@@ -214,6 +223,46 @@ def make_public_font_css() -> str:
 </style>'''
 
 
+def make_model_specification(deck: dict) -> str:
+    """Render only the already-sanitized model; never copy private source files."""
+    model = deck['cld_story']; revision = deck['canonical_revision']
+    nodes = {n['id']: n for n in model['nodes']}; edges = {e['id']: e for e in model['edges']}
+    h = escape
+    def relation(edge):
+        sign = '−' if edge['polarity'] == '-' else '+'
+        return h(nodes[edge['from']]['label']) + f' <b class="sign {"negative" if sign == "−" else "positive"}">→ ({sign})</b> ' + h(nodes[edge['to']]['label'])
+    def table(data):
+        return '<div class="table-scroll"><table><thead><tr>' + ''.join('<th>'+h(x)+'</th>' for x in data['columns']) + '</tr></thead><tbody>' + ''.join('<tr>'+''.join('<td>'+h(str(x))+'</td>'for x in row)+'</tr>'for row in data['rows']) + '</tbody></table></div>'
+    chunks = ['<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>4PW model specification</title>', make_public_font_css(), '''<style>
+:root{--font:Helvetica,"Journal Public Latin","DB Helvethaica X","Journal Public Leelawadee","Journal Public Tahoma",Arial,sans-serif}body{margin:0;background:#fff;color:#1d1d1f;font:28px/1.4 var(--font)}main{max-width:1200px;margin:auto;padding:48px 28px}h1{font-size:64px;line-height:1.1;letter-spacing:-.02em}h2{font-size:42px;margin-top:54px}h3{font-size:31px}a{color:#06c}nav{display:flex;flex-wrap:wrap;gap:14px;font-size:22px}.lead{font-size:33px;font-weight:700}.note{color:#6e6e73;font-size:23px}details{border-bottom:1px solid #e5e5ea;padding:18px 0;scroll-margin-top:20px}summary{cursor:pointer;font-weight:700}li{padding:10px 0}table{width:100%;border-collapse:collapse;font-size:23px}th,td{border-bottom:1px solid #ddd;text-align:left;vertical-align:top;padding:12px 10px}th{background:#f5f5f7}.table-scroll{overflow:auto;max-width:100%;min-width:0}details,summary,li,p{overflow-wrap:anywhere;min-width:0}.positive{color:#159ab5}.negative{color:#dc6278}.tag{font-size:22px;color:#666}section{scroll-margin-top:20px}.badge{font-size:21px;color:#77541d}code{font-size:.75em;overflow-wrap:anywhere}@media(max-width:650px){main{padding:28px 20px}h1{font-size:48px}h2{font-size:36px}body{font-size:27px}.lead{font-size:30px}table{min-width:650px}}@media print{details{break-inside:avoid}nav{display:none}}
+</style></head><body><main><nav><a href="index.html?route=story&amp;mode=present&amp;scene=JC-CLD-STORY&amp;step=1">Back to slides</a><a href="#walk">Loop sequence</a><a href="#variables">Variables</a><a href="#connections">Connections</a><a href="#ledger-reconciliation">Ledger reconciliation</a></nav><h1>4PW model specification</h1><p class="lead">49 variables · 66 causal links · 24 stock–flow connections · 35 named loops</p><p class="note">Public rendering of the latest researcher-supplied specification used by these slides. It preserves the ordered walk, labels, polarity, delays and mechanism statements. This is a proposed programme theory, not an independently validated causal model.</p><p class="note">The 16 added causal links are analogical proposals. Their supporting 42-loop dossier is not supplied here. Stock–flow identities are accounting relations; prior-ledger records and structural closure do not constitute new causal validation.</p>''']
+    chunks.append('<p class="note">Specification fingerprint: <code>'+h(revision['source_sha256'][:16])+'</code></p><h2 id="walk">The exact loop sequence</h2>')
+    for loop in model['loops']:
+        chunks.append(f'<details class="loop" id="{h(loop["id"])}"><summary>{loop["story_order_1based"]}. {h(loop["id"])} · {h(loop["name"])}</summary><p>{h(loop["thai_name"])}</p><p class="note">{h(loop["source_stage"])} · {h(loop["computed_type"])} · {loop["negative_count"]} negative signs · {loop["delay_count"]} delayed links</p><ol>')
+        for edge_id in loop['edge_ids']:
+            edge = edges[edge_id]; label = 'Stock–flow identity' if edge['connection_kind'] == 'stock_flow' else edge['id']
+            chunks.append('<li>'+relation(edge)+' <a href="#'+h(edge_id)+'">'+h(label)+'</a>'+(' · delay //'if edge['delay']else'')+'<p>'+h(edge['mechanism'])+'</p></li>')
+        chunks.append('</ol><p>'+h(loop['recorded_description'])+'</p></details>')
+    chunks.append('<h2 id="variables">Variables and their source labels</h2><p class="note">Stocks use uppercase. Flows and converters retain lowercase labels. Tags are shown only where recorded in the supplied specification.</p>')
+    chunks.append(table({'columns':['Type','Variable','Recorded annotation'],'rows':[[n['variable_type'],n['label'],n['display_annotation']]for n in model['nodes']]}))
+    chunks.append('<h2 id="connections">All 90 connections</h2>')
+    for edge in model['edges']:
+        label = 'Stock–flow identity' if edge['connection_kind'] == 'stock_flow' else 'Causal link '+edge['id']
+        chunks.append(f'<details class="connection" id="{h(edge["id"])}"><summary>{h(label)} · {relation(edge)}</summary><p>{h(edge["mechanism"])}</p><p class="note">{h(edge["recorded_assessment"])}</p><p class="note">Source lines: '+', '.join(map(str,edge['source_lines']))+'</p></details>')
+    chunks.append('<h2 id="remaining">Connections outside the named loops</h2><ol>')
+    for eid in model['additional_network_edge_ids']:chunks.append('<li><a href="#'+h(eid)+'">'+relation(edges[eid])+'</a></li>')
+    chunks.append('</ol><h2>Externally set drivers</h2><p class="note">The supplied specification lists these variables as having no cause inside this model. This is a boundary of the model, not a claim that they lack causes in reality.</p><ul>'+''.join('<li>'+h(x)+'</li>'for x in revision['declared_exogenous_variables'])+'</ul><h2 id="ledger-reconciliation">Comparison with the retained source ledger</h2><p>49 of the 50 original ledger endpoint/sign signatures match the revised specification. AA5 changes its target to adoption of restrictive practices. The earlier simplified diagram was a separate graphic projection; its 28 restored signatures are not 28 changes to the underlying evidence ledger.</p><p class="note">This comparison checks identity and provenance. It does not reappraise causal evidence, saturation, source independence or transferability. AA1–AA4 have a wider informal-routes interpretation than the political-fast-track evidence; stock-based persistence of provider restriction remains a hypothesis.</p>')
+    rows=[]
+    for row in sorted(revision['ledger_signature_reconciliation']['rows'],key=lambda r:r['id']):
+        old=row['oldLedger']; new=row['canonical'];rows.append([row['id'],old['from']+' → ('+old['polarity']+') '+old['to'],new['from']+' → ('+new['polarity']+') '+new['to'],'Same endpoint/sign'if not row['changed']else'Changed: '+', '.join(row['changed'])])
+    chunks.append(table({'columns':['Link','Retained ledger','Current specification','Comparison'],'rows':rows}))
+    for key,title in [('changes','What the revision changes'),('archetypes','Proposed archetype readings'),('breaks','Five breaks'),('dynamic_hypotheses','Dynamic hypotheses')]:chunks.append('<h2>'+h(title)+'</h2>'+table(revision[key]))
+    chunks.append('<h2>Scope and qualifications</h2><ul>'+''.join('<li>'+h(x)+'</li>'for x in revision['cautions'])+'</ul><p class="note">Original source files, consultation transcripts and participant-level records are not distributed by this reader.</p></main><script>function reveal(){const e=document.getElementById(decodeURIComponent(location.hash.slice(1)));if(e){if(e.tagName==="DETAILS")e.open=true;e.scrollIntoView({block:"start"})}}addEventListener("hashchange",reveal);addEventListener("DOMContentLoaded",reveal);</script></body></html>')
+    result=''.join(chunks)
+    if LOCAL_URL.search(result) or WIN_PATH.search(result) or LOOPBACK.search(result):raise ValueError('Local path in model reader.')
+    return result
+
+
 def make_public_ui(updated_at: str) -> str:
     # No external dependency, font redistribution, telemetry or auto reload.
     config = json.dumps({'updated_at': updated_at}, ensure_ascii=False).replace('<', '\\u003c')
@@ -253,12 +302,15 @@ def main():
     datetime.fromisoformat(updated_at.replace('Z', '+00:00'))
     source = args.source.resolve()
     html, deck, assets, report = prepare(source, updated_at)
+    specification = make_model_specification(deck) if deck.get('canonical_revision') else None
     if not args.check:
         output = args.output.resolve()
         if output == source.parent or not output.is_relative_to(PROJECT.resolve()):
             raise ValueError('Output must be a distinct folder inside this project.')
         output.mkdir(parents=True, exist_ok=True)
         (output / 'index.html').write_text(html, encoding='utf-8', newline='\n')
+        if specification:
+            (output / 'model-specification.html').write_text(specification, encoding='utf-8', newline='\n')
         for relative in assets:
             target = output / relative
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -271,7 +323,7 @@ def main():
             'Published citations link to their original sources. Candidate literature is provisional; screening labels do not establish inclusion or causal support. Original source figures retain their attribution and recorded CC BY-NC 4.0 licence. No private source files, raw candidate abstract exports or font binaries are distributed.\n', encoding='utf-8', newline='\n')
         # The manifest is deliberately public-safe: no paths or withheld content.
         manifest = {'updated_at': updated_at, 'logical_pages': len(deck['scenes']), 'files': []}
-        for relative in ['index.html', '.nojekyll', 'version.json', 'SOURCE_NOTES.md', *assets]:
+        for relative in ['index.html', '.nojekyll', 'version.json', 'SOURCE_NOTES.md', *(['model-specification.html'] if specification else []), *assets]:
             f = output / relative
             manifest['files'].append({'path': relative, 'sha256': digest(f.read_bytes()), 'bytes': f.stat().st_size})
         (output / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8', newline='\n')
