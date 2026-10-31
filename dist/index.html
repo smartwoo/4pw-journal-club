@@ -133299,7 +133299,7 @@ svg.motion-active .fw-motion-line{animation:fw-findings-draw .70s ease-out var(-
     "scientific_model_changed": false
   },
   "public_edition": {
-    "updated_at": "2026-10-31T12:11:12+07:00",
+    "updated_at": "2026-10-31T12:21:03+07:00",
     "status": "Working research presentation",
     "private_material_boundary": "Original unpublished source files are not distributed in this public edition.",
     "consultation_redaction": "Participant-level consultation details are omitted from the public edition. The working ledger retains the original record. Recorded contribution counts and review-depth assessments have not been recalculated after this omission; they are not independent causal validation.",
@@ -134884,6 +134884,7 @@ function statusQuoInstallStyle(){
 .status-quo-synthesis .cld-story__graph-caption{font-size:19px;line-height:1.15;color:#6e6e73}
 .status-quo-synthesis .cld-story__boundary{font-size:17px;line-height:1.2;color:#6e6e73;margin-top:6px}
 .status-quo-synthesis .cld-story__narrative{min-height:0;overflow:auto;overscroll-behavior:contain;padding-bottom:24px}
+.status-quo-synthesis .cld-story__narrative{scroll-margin-top:calc(var(--header) + var(--synthesis-nav-height,70px) + 12px)}
 .status-quo-synthesis .status-quo__controls{display:grid;grid-template-columns:1fr 1fr auto;gap:7px 8px;flex:none;margin:0 0 12px}
 .status-quo__stage-label{grid-column:1/-1;display:flex;align-items:center;gap:10px;font-size:20px;color:#6e6e73;min-width:0}
 .status-quo__stage-select{flex:1;min-width:0;border:1px solid #d2d2d7;border-radius:8px;background:#fff;color:#1d1d1f;font:inherit;font-size:21px;padding:5px 7px}
@@ -134919,6 +134920,17 @@ function statusQuoInstallStyle(){
 .status-quo__break-jump{display:grid;grid-template-columns:25px 1fr;gap:9px;text-align:left;align-items:center;font:inherit;font-size:25px;line-height:1.16;color:#1d1d1f;border:1px solid #e5e5ea;border-radius:10px;background:#fff;padding:10px 12px;cursor:pointer}
 .status-quo__break-jump:hover,.status-quo__break-jump:focus-visible{border-color:#86b9ff;background:#f7faff}
 .status-quo__break-jump b{font-size:23px;color:#6e6e73}
+.status-quo__break-nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;flex:none;min-width:0;padding:7px 0 9px;margin:0;background:#fff;border-bottom:1px solid #e5e5ea;z-index:9}
+.status-quo__break-tab{display:grid;grid-template-columns:18px minmax(0,1fr);align-items:center;gap:5px;min-width:0;min-height:52px;border:1px solid #dce3ed;border-radius:9px;background:#fff;color:#42424a;text-align:left;padding:6px;font:inherit;cursor:pointer}
+.status-quo__break-tab b{font-size:21px;text-align:center;color:#6e6e73}
+.status-quo__break-tab span{font-size:20px;line-height:1.12;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.status-quo__break-tab:hover,.status-quo__break-tab:focus-visible{border-color:#0071e3;background:#f5f9ff;outline-offset:2px}
+.status-quo__break-tab[aria-current="step"]{border-color:#0071e3;background:#eef5ff;color:#0057b8}
+.status-quo__break-tab[aria-current="step"] b{color:#0057b8}
+.mode-read .status-quo__break-nav{position:sticky;top:var(--header);box-shadow:0 5px 10px -8px #9ca9bc}
+.mode-read .status-quo-synthesis .cld-story__panel{top:calc(var(--header) + var(--synthesis-nav-height,70px) + 12px);height:calc(100dvh - var(--header) - var(--footer) - var(--synthesis-nav-height,70px) - 38px);min-height:0}
+@media(max-width:800px){.status-quo-synthesis .status-quo__break-nav{position:sticky;top:var(--header);padding:6px 0;background:#fff}.status-quo__break-tab{display:flex;flex-direction:column;justify-content:center;gap:3px;min-height:58px;padding:5px 2px;text-align:center}.status-quo__break-tab b{font-size:20px;line-height:1}.status-quo__break-tab span{font-size:17px;line-height:1.08}.mode-read .status-quo-synthesis .cld-story__panel{height:auto;min-height:0;max-height:none}.mode-read .status-quo-synthesis .cld-story__panel .cld-story__viewport,.mode-read .status-quo-synthesis .cld-story__panel .cld-story__viewport>svg{height:min(270px,32dvh)}}
+@media print{.status-quo__break-nav{display:none!important}.mode-read .status-quo-synthesis .cld-story__panel{position:static;top:auto;height:auto}}
 .status-quo__framework{font-size:17px;line-height:1.25;color:#6e6e73;margin-top:10px}
 .status-quo__framework a{color:#6e6e73;text-underline-offset:3px}
 .status-quo__overview-note{font-size:23px;line-height:1.3;color:#6e6e73;margin:10px 0}
@@ -134962,6 +134974,11 @@ function statusQuoSynthesisSceneNode(scene,stepIndex,{allSteps=false,printing=fa
  const allMap=el('button','status-quo__map-action','ดูทั้งโมเดล'),stageMap=el('button','status-quo__map-action','เน้นขั้นนี้');allMap.type=stageMap.type='button';section.querySelector('.cld-story__graph-tools').append(stageMap,allMap);
  const breakMap=new Map(breaks.map(b=>[b.id,b])),cardMap=new Map(),frameworkRefs=scene.framework_refs||cfg.framework_refs||[];
  let active=Math.max(0,Math.min(frames.length-1,Number(stepIndex)||0)),disposed=false,readFrame=0,initialFrame=0;
+ const breakNav=el('nav','status-quo__break-nav'),breakTabs=[];breakNav.setAttribute('aria-label','เลือกช่องว่างทั้งห้า');
+ const compactTitles=['เสียงและอิทธิพล','มติและการปฏิบัติ','ภารกิจและกำลัง','ข้อมูลและการเรียนรู้','บทเรียนและกติกา'];
+ for(const [i,item]of breaks.entries()){const button=el('button','status-quo__break-tab');button.type='button';button.dataset.breakId=item.id;button.title=`${i+1}. ${item.title_th}`;button.setAttribute('aria-label',button.title);button.append(el('b','',String(i+1)),el('span','',compactTitles[i]||item.title_th));button.addEventListener('click',()=>update(frames.findIndex(frame=>frame.break_id===item.id),{scroll:allSteps,user:true}));breakTabs.push(button);breakNav.append(button)}
+ controls.after(breakNav);
+ const navResize=new ResizeObserver(()=>{const height=Math.ceil(breakNav.getBoundingClientRect().height);if(height>0)section.style.setProperty('--synthesis-nav-height',`${height}px`)});navResize.observe(breakNav);
  const unique=ids=>[...new Set(ids||[])].filter(id=>loopMap.has(id));
  const loopButtons=(ids)=>{const wrap=el('div','status-quo__loops');for(const id of unique(ids)){const loop=loopMap.get(id),b=el('button','status-quo__loop',loopDisplayCode(loop));b.type='button';b.title=loopDisplayName(loop);b.dataset.loopId=id;b.setAttribute('aria-label',`${loopDisplayCode(loop)} · ${loopDisplayName(loop)} · inspect loop`);b.addEventListener('click',()=>openCumulativeLoop(loop));wrap.append(b)}return wrap};
  const evidenceButtons=ids=>{const wrap=el('div','status-quo__evidence'),valid=[...new Set(ids||[])].filter(id=>edgeMap.has(id));if(valid.length)wrap.append(el('span','status-quo__evidence-label','ตรวจหลักฐานรายเส้น'));for(const id of valid){const b=el('button','status-quo__evidence-link',id);b.type='button';b.dataset.edgeId=id;b.setAttribute('aria-label',`Inspect relationship ${id} and recorded evidence`);b.addEventListener('click',()=>openCanonicalRelationship(edgeMap.get(id),null));wrap.append(b)}return wrap};
@@ -134978,7 +134995,7 @@ function statusQuoSynthesisSceneNode(scene,stepIndex,{allSteps=false,printing=fa
   const card=el('section','cld-story__card status-quo__card');card.dataset.synthesisStage=String(index);card.dataset.stageId=frame.id;card.setAttribute('role','listitem');
   const br=breakMap.get(frame.break_id);card.append(el('h4','cld-support-label','Supporting Points:'),el('p','status-quo__eyebrow',br?`ช่องว่าง ${frame.break_index+1} / ${breaks.length} · ขั้น ${frame.stage_index+1} / ${frame.stage_count}`:frame.kind==='overview'?'จากวงจรสู่สมมติฐานร่วม':'สังเคราะห์ข้ามช่องว่าง'),el('h3','',frame.title_th));
   if(frame.kind==='overview'){
-   const list=el('div','status-quo__break-list');for(const [i,item]of breaks.entries()){const b=el('button','status-quo__break-jump');b.type='button';b.append(el('b','',String(i+1)),el('span','',item.title_th));b.addEventListener('click',()=>update(frames.findIndex(f=>f.break_id===item.id),{scroll:allSteps,user:true}));list.append(b)}card.append(list,el('p','status-quo__overview-note','อ่านแต่ละช่องว่างผ่านวงจรที่เชื่อมกัน การแก้เฉพาะหน้า ผลย้อนกลับ และเส้นทางที่อาจช่วยคลี่คลาย'));
+   card.append(el('p','status-quo__overview-note','เลือกช่องว่าง 1–5 จากแถบด้านบนได้ตลอดขณะอ่าน เพื่อดูวงจรที่เชื่อมกัน การแก้เฉพาะหน้า ผลย้อนกลับ และเส้นทางที่อาจช่วยคลี่คลาย'));
    card.append(el('p','status-quo__boundary',overall.boundary_th||'ภาพนี้ใช้ตั้งสมมติฐาน ยังไม่ใช่การยืนยันเหตุและผล'));
   }else if(frame.kind==='final'){
    const nested=overall.nesting_hypothesis||{};if(nested.narrative_th)card.append(el('p','status-quo__narrative',nested.narrative_th));
@@ -135003,23 +135020,24 @@ function statusQuoSynthesisSceneNode(scene,stepIndex,{allSteps=false,printing=fa
   const before=deck.scenes.slice(0,state.index).reduce((sum,s)=>sum+s.steps.length,0),total=deck.scenes.reduce((sum,s)=>sum+s.steps.length,0),bar=document.querySelector('.progress');if(bar){const value=(before+active+1)/total*100;bar.style.width=`${value}%`;bar.setAttribute('aria-valuenow',String(Math.round(value)))}
   const rootPrev=document.querySelector('#previous'),rootNext=document.querySelector('#next');if(rootPrev)rootPrev.disabled=state.index===0&&active===0;if(rootNext)rootNext.disabled=state.index===deck.scenes.length-1&&active===frames.length-1;
  }
+ function readingLine(){const mobile=matchMedia('(max-width:800px)').matches,obstruction=mobile?panel.getBoundingClientRect().bottom:Math.max(controls.getBoundingClientRect().bottom,breakNav.getBoundingClientRect().bottom);return Math.min(innerHeight-90,Math.max(obstruction+30,innerHeight*(mobile?.58:.32)))}
  function update(index,{scroll=false,user=false}={}){
   if(disposed)return;active=Math.max(0,Math.min(frames.length-1,Number(index)||0));const frame=frames[active],br=breakMap.get(frame.break_id);
   section.dataset.step=allSteps?'all':String(active+1);section.dataset.synthesisStage=String(active);section.dataset.synthesisStageId=frame.id;
+  breakTabs.forEach(button=>{if(button.dataset.breakId===frame.break_id)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current')});
   title.textContent=br?.question_th||scene.title||'เหตุใดช่องว่างทั้งห้าจึงอาจดำรงอยู่ร่วมกัน?';intro.replaceChildren(el('strong','',br?.takeaway_th||overall.takeaway_th||''));heading.textContent=br?`${frame.break_index+1}. ${br.title_th}`:frame.title_th;
   select.value=range.value=String(active);range.setAttribute('aria-valuetext',`${active+1} of ${frames.length}: ${frame.title_th}`);position.textContent=`${active+1} / ${frames.length}`;previous.disabled=active===0;next.disabled=active===frames.length-1;
-  if(allSteps){for(const[i,card]of cardMap)card.classList.toggle('is-active',i===active);if(scroll){const card=cardMap.get(active);requestAnimationFrame(()=>{if(!card?.isConnected)return;const line=Math.min(innerHeight-90,Math.max(panel.getBoundingClientRect().bottom+28,innerHeight*.58)),box=card.getBoundingClientRect(),animate=document.documentElement.dataset.motion!=='off'&&!matchMedia('(prefers-reduced-motion:reduce)').matches;window.scrollBy({top:box.top+box.height*.5-line,behavior:animate?'smooth':'instant'})})}}
-  else narrative.replaceChildren(makeCard(frame,active));syncState();spotlight({animate:user||!allSteps});
+  if(allSteps){for(const[i,card]of cardMap)card.classList.toggle('is-active',i===active);if(scroll){const card=cardMap.get(active);requestAnimationFrame(()=>{if(!card?.isConnected)return;const line=readingLine(),box=card.getBoundingClientRect(),animate=document.documentElement.dataset.motion!=='off'&&!matchMedia('(prefers-reduced-motion:reduce)').matches;window.scrollBy({top:box.top+box.height*.5-line,behavior:animate?'smooth':'instant'})})}}
+  else{narrative.replaceChildren(makeCard(frame,active));if(user){narrative.scrollTop=0;if(matchMedia('(max-width:800px)').matches)requestAnimationFrame(()=>{if(narrative.isConnected)narrative.scrollIntoView({block:'start',behavior:'instant'})})}}syncState();spotlight({animate:user||!allSteps});
  }
  narrative.replaceChildren();if(allSteps){narrative.setAttribute('role','list');for(const[interval,frame]of frames.entries()){const card=makeCard(frame,interval);cardMap.set(interval,card);narrative.append(card)}}
  previous.addEventListener('click',()=>update(active-1,{scroll:allSteps,user:true}));next.addEventListener('click',()=>update(active+1,{scroll:allSteps,user:true}));select.addEventListener('change',()=>update(Number(select.value),{scroll:allSteps,user:true}));range.addEventListener('input',()=>update(Number(range.value),{scroll:allSteps,user:true}));allMap.addEventListener('click',()=>spotlight({clear:true}));stageMap.addEventListener('click',()=>spotlight());
  section.addEventListener('cld-story-replay',()=>{if(!disposed)update(active)});
- const scrollRead=()=>{readFrame=0;if(disposed||!allSteps||!section.isConnected||document.documentElement.dataset.printing==='true')return;const b=section.getBoundingClientRect();if(b.bottom<0||b.top>innerHeight)return;const mobile=matchMedia('(max-width:800px)').matches,obstruction=mobile?panel.getBoundingClientRect().bottom:controls.getBoundingClientRect().bottom,line=Math.min(innerHeight-90,Math.max(obstruction+30,innerHeight*(mobile ? .58 : .32)));let chosen=null;for(const[index,card]of cardMap){if(card.getBoundingClientRect().top<=line)chosen=index;else break}if(chosen!==null&&chosen!==active)update(chosen)};
+ const scrollRead=()=>{readFrame=0;if(disposed||!allSteps||!section.isConnected||document.documentElement.dataset.printing==='true')return;const b=section.getBoundingClientRect();if(b.bottom<0||b.top>innerHeight)return;const line=readingLine();let chosen=null;for(const[index,card]of cardMap){if(card.getBoundingClientRect().top<=line)chosen=index;else break}if(chosen!==null&&chosen!==active)update(chosen)};
  const scheduleRead=()=>{if(!readFrame)readFrame=requestAnimationFrame(scrollRead)};if(allSteps){window.addEventListener('scroll',scheduleRead,{passive:true});window.addEventListener('resize',scheduleRead,{passive:true})}
- const dispose=()=>{disposed=true;if(readFrame)cancelAnimationFrame(readFrame);if(initialFrame)cancelAnimationFrame(initialFrame);window.removeEventListener('scroll',scheduleRead);window.removeEventListener('resize',scheduleRead)};cldStoryDisposers.add(dispose);
+ const dispose=()=>{disposed=true;navResize.disconnect();if(readFrame)cancelAnimationFrame(readFrame);if(initialFrame)cancelAnimationFrame(initialFrame);window.removeEventListener('scroll',scheduleRead);window.removeEventListener('resize',scheduleRead)};cldStoryDisposers.add(dispose);
  update(printing?frames.length-1:active);initialFrame=requestAnimationFrame(()=>{if(!disposed&&section.isConnected)spotlight({animate:false})});document.fonts.ready.then(()=>{if(!disposed&&section.isConnected)update(active)});return section;
 }
-
 
 function linkEvidenceOverviewNode(scene,stepIndex=0,{allPoints=false}={}){
  const update=deck.link_evidence_update,section=el('section','slide slide--editorial has-takeaway link-review-overview');section.dataset.scene=scene.id;section.dataset.step=allPoints?'all':String(stepIndex+1);
@@ -135233,7 +135251,7 @@ function closingSceneNode(scene,stepIndex=0,{allPoints=false}={}){
 <aside class="public-status" aria-label="Public edition status"><span id="public-release-label"></span><button type="button" id="public-material-open">Source notes</button><span class="public-status__update" hidden><span>New revision available.</span><button type="button" id="public-reload">Reload</button></span></aside>
 <dialog class="public-material" id="study-material" aria-labelledby="study-material-title"><h2 id="study-material-title">Study materials and evidence boundary</h2><p>This is a working research presentation. Published sources remain linked to their original public pages where available. The study model, draft review protocols and candidate literature register are unpublished working materials; their original files are not included in this public edition. Some cited workshop documents are locally held and are also not distributed here; their original citation metadata is retained.</p><p>Participant-level consultation records, transcript locators and identifying role/date combinations are withheld. The public presentation retains the recorded model structure, source-contribution counts, support status and review-depth assessments. Those counts and assessments describe the original working ledger, include withheld contributions and have not been recomputed after redaction. They are not independent-study counts or causal validation.</p><p>Candidate references retain their provisional screening and reading-depth labels. This edition omits raw abstract-export fields. The planned reviews and hypotheses remain distinct from completed or independently verified findings.</p><p>Source figures retain their original attribution and the recorded CC BY-NC 4.0 licence. Fonts are requested from the viewer’s device; no font binaries are distributed.</p><p><a href="SOURCE_NOTES.md" target="_blank" rel="noopener noreferrer">Public-edition source notes</a></p><form method="dialog"><button>Close source notes</button></form></dialog>
 <script>
-(()=>{'use strict';const release={"updated_at": "2026-10-31T12:11:12+07:00"},material=document.getElementById('study-material');let lastCheck=0;
+(()=>{'use strict';const release={"updated_at": "2026-10-31T12:21:03+07:00"},material=document.getElementById('study-material');let lastCheck=0;
 const status=document.querySelector('.public-status');document.querySelector('.controls__tools')?.append(status);
 const date=new Date(release.updated_at);document.getElementById('public-release-label').textContent=new Intl.DateTimeFormat('en-GB',{dateStyle:'medium',timeZone:'Asia/Bangkok'}).format(date);status.title='Working research presentation · Updated '+new Intl.DateTimeFormat('en-GB',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Bangkok'}).format(date)+' ICT';
 function openMaterial(){if(!material.open)material.showModal()}
