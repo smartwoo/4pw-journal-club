@@ -1,6 +1,6 @@
 # Public edition
 
-Working research presentation; updated 2026-10-31T10:54:58+07:00.
+Working research presentation; updated 2026-10-31T11:13:28+07:00.
 
 Original unpublished source files are not distributed in this public edition.
 

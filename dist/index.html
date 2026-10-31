@@ -893,6 +893,23 @@ svg .loop-glyph-arrowhead{fill:#000!important}
 
 
 .loop-narrative-step--selected{background:#f5f5f7;border-radius:12px;padding:12px}.loop-original-version{margin:12px 0}.loop-revised-summary,.loop-revised-steps{margin-top:28px}.loop-revised-summary h3,.loop-revised-steps h3{margin-bottom:12px}
+
+/* Follow the complete current relationship without changing the accumulated map. */
+.cld-relationship-reader{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:10px;padding:12px 16px;border:1px solid #e5e5ea;border-radius:14px;background:#fff;flex:none;color:#1d1d1f}
+.cld-relationship-reader[hidden]{display:none}
+.cld-relationship-reader__node{font-size:clamp(23px,1.95vw,30px);font-weight:600;line-height:1.2;overflow-wrap:anywhere;min-width:0}
+.cld-relationship-reader__type{display:block;font-size:12px;font-weight:400;line-height:1.3;color:#6e6e73;margin-bottom:4px}
+.cld-relationship-reader__connector{display:flex;flex-direction:column;align-items:center;gap:3px;white-space:nowrap}
+.cld-relationship-reader__sign{font-size:27px;line-height:1.1;font-weight:600;color:#159ab5}
+.cld-relationship-reader[data-polarity="-"] .cld-relationship-reader__sign{color:#dc6278}
+.cld-relationship-reader__delay{font-size:13px;color:#6e6e73}
+.cld-relationship-reader__source{font:inherit;font-size:13px;color:#06c;background:none;border:0;padding:4px 0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.cld-relationship-reader__phase{grid-column:1/-1;font-size:22px;line-height:1.25;text-align:center}
+.cld-story__panel[data-view="relationship"] .connected-loop-caption,.cld-story__panel[data-view="relationship"] .connected-completed,.cld-story__panel[data-view="relationship"] .cld-story__boundary{display:none}
+.cld-story__panel[data-view="relationship"][data-following="edge"] .cld-edge:not(.cld-edge--active){opacity:.15}
+.cld-story__panel[data-view="relationship"][data-following="edge"] .cld-node:not(.cld-node--active){opacity:.24}
+@media(max-width:800px){.cld-relationship-reader{padding:9px 10px;gap:8px}.cld-relationship-reader__node{font-size:21px;line-height:1.18}.cld-relationship-reader__type{font-size:11px}.cld-relationship-reader__sign{font-size:22px}.cld-relationship-reader__source{font-size:12px}.cld-relationship-reader__phase{font-size:20px}.cld-relationship-reader__delay{font-size:11px}}
+
 </style>
 <style id="public-font-fallback">
 @font-face{font-family:"Journal Public Latin";src:local("Arial"),local("Roboto"),local("Liberation Sans");font-style:normal;font-weight:300 600;font-display:swap;size-adjust:68.5%;unicode-range:U+0000-0DFF,U+0E80-10FFFF}
@@ -101598,7 +101615,7 @@ svg.motion-active .fw-motion-line{animation:fw-findings-draw .70s ease-out var(-
     "display_numbering": "Sequential R/B codes in presentation order; canonical source IDs retained for evidence and original version"
   },
   "public_edition": {
-    "updated_at": "2026-10-31T10:54:58+07:00",
+    "updated_at": "2026-10-31T11:13:28+07:00",
     "status": "Working research presentation",
     "private_material_boundary": "Original unpublished source files are not distributed in this public edition.",
     "consultation_redaction": "Participant-level consultation details are omitted from the public edition. The working ledger retains the original record. Recorded contribution counts and review-depth assessments have not been recalculated after this omission; they are not independent causal validation.",
@@ -102700,6 +102717,7 @@ function cldStorySceneNode(scene, stepIndex, {allSteps=false}={}) {
   const loopMap=new Map(data.loops.map(x=>[x.id,x]));
   const uid=`cld-story-${++cldStoryCopy}`;
   const pref=cldStoryPreferences.get(scene.id)||{view:'growing',labels:'active',zoom:1,panX:0,panY:0};
+  const requestedView=new URLSearchParams(location.search).get('cldView');if(['growing','relationship','focus'].includes(requestedView))pref.view=requestedView;
   cldStoryPreferences.set(scene.id,pref);pref.edgeRevealAt=pref.edgeRevealAt||{};
   let activeIndex=Math.max(0,Math.min(data.storySteps.length-1,stepIndex||0));
   let observer=null,disposed=false,drag=null,cameraFrame=0;
@@ -102727,7 +102745,7 @@ function cldStorySceneNode(scene, stepIndex, {allSteps=false}={}) {
   const layout=el('div','cld-story__layout'),panel=el('figure','visual-figure cld-story__panel');
   const graphTools=el('div','cld-story__graph-tools');graphTools.setAttribute('role','group');graphTools.setAttribute('aria-label','Model view controls');
   const viewLabel=el('label','','View '),viewSelect=el('select');
-  for(const [value,label]of [['growing','Build the full map'],['focus','One loop at a time']]){const o=el('option','',label);o.value=value;viewSelect.append(o)}
+  for(const [value,label]of [['growing','Build the full map'],['relationship','Follow each relationship'],['focus','One loop at a time']]){const o=el('option','',label);o.value=value;viewSelect.append(o)}
   viewSelect.value=pref.view;viewLabel.append(viewSelect);
   const labelsLabel=el('label','','Emphasis '),labelsSelect=el('select');
   for(const [value,label]of [['active','Current relationship'],['all','All introduced variables']]){const o=el('option','',label);o.value=value;labelsSelect.append(o)}
@@ -102736,6 +102754,7 @@ function cldStorySceneNode(scene, stepIndex, {allSteps=false}={}) {
   for(const b of [zoomOut,zoomIn,fit])b.type='button';zoomOut.setAttribute('aria-label','Zoom out');zoomIn.setAttribute('aria-label','Zoom in');fit.setAttribute('aria-label','Fit model to view');
   const zoomLoop=el('button','cld-story__zoom-loop','ซูมวงนี้');zoomLoop.type='button';zoomLoop.title='ขยายวงที่กำลังเล่า โดยคงภาพสะสมไว้';
   graphTools.append(viewLabel,zoomOut,zoomIn,fit,zoomLoop);
+  const relationshipReader=el('div','cld-relationship-reader');relationshipReader.hidden=true;relationshipReader.setAttribute('role','group');relationshipReader.setAttribute('aria-label','Current causal relationship');
   const stage=el('div','cld-story__viewport');stage.tabIndex=0;stage.setAttribute('role','region');stage.setAttribute('aria-label','Interactive study model; drag to pan, use zoom controls, or select a relationship for evidence');
   const ns='http://www.w3.org/2000/svg';
   const svgNode=(tag,attrs={},text='')=>{const n=document.createElementNS(ns,tag);for(const[k,v]of Object.entries(attrs))n.setAttribute(k,String(v));if(text)n.textContent=text;return n};
@@ -102748,7 +102767,7 @@ function cldStorySceneNode(scene, stepIndex, {allSteps=false}={}) {
   for(const [polarity,label]of [['+','Adds to / same direction'],['-','Subtracts from / opposite direction']]){const item=el('span','connected-cld-legend__item');item.dataset.polarity=polarity;item.append(el('span','connected-cld-legend__line'),document.createTextNode(label));graphLegend.append(item)}
   graphLegend.append(el('span','connected-cld-legend__delay','∥ Recorded delay'));graphLegend.setAttribute('aria-label','Relationship polarity and delay; these signs are model directions, not effect estimates.');
   graphLegend.append(el('span','canonical-legend-types','STOCKS: uppercase · flows / converters: lowercase'),el('span','canonical-legend-kinds','··· stock–flow identity · – – analogical causal link'));const boundary=el('p','cld-story__boundary','โครงสร้างวงจรยังไม่ยืนยันเหตุและผล · เส้นใหม่รอประเมินใน 4PW');
-  panel.append(graphTools,activeLoopHeading,activeLinkLabel,stage,loopCaption,graphCaption,graphLegend,completedLoops,boundary);
+  panel.append(graphTools,activeLoopHeading,activeLinkLabel,relationshipReader,stage,loopCaption,graphCaption,graphLegend,completedLoops,boundary);
   const narrative=el('div','cld-story__narrative');narrative.setAttribute('role','list');
   const cardMap=new Map();
 
@@ -102800,6 +102819,55 @@ function cldStorySceneNode(scene, stepIndex, {allSteps=false}={}) {
     }else set(target);
     stage.setAttribute('aria-label',`Study model, zoom ${Math.round(pref.zoom*100)} percent. Drag to pan; relationships open their sources.`);syncVisibleEndpoints();
   }
+
+  function updateRelationshipReader(step,loop){
+    const following=pref.view==='relationship',edge=edgeMap.get(step.edge_id);
+    relationshipReader.hidden=!following;relationshipReader.replaceChildren();
+    panel.dataset.view=pref.view;panel.dataset.following=edge?'edge':step.phase;
+    section.dataset.cldView=pref.view;relationshipReader.dataset.edgeId=edge?.id||'';
+    relationshipReader.dataset.polarity=edge?.polarity||'';
+    if(!following)return;
+    if(edge){
+      for(const [index,id]of [edge.from,edge.to].entries()){
+        if(index){const connector=el('div','cld-relationship-reader__connector');connector.append(el('span','cld-relationship-reader__sign',`→ (${edge.polarity==='-'?'−':'+'})`));if(edge.delay)connector.append(el('span','cld-relationship-reader__delay','∥ delay'));const source=el('button','cld-relationship-reader__source','หลักฐาน ↗');source.type='button';source.addEventListener('click',()=>showEvidence(edge,loop));connector.append(source);relationshipReader.append(connector)}
+        const node=nodeMap.get(id),text=el('div','cld-relationship-reader__node');text.dataset.endpoint=id;
+        text.append(el('small','cld-relationship-reader__type',`${index?'To':'From'} · ${node.variable_type}`),el('span','cld-relationship-reader__name',node.label));relationshipReader.append(text);
+      }
+    }else{
+      const anchor=nodeMap.get(loop?.connection.anchor_node_id);
+      const message=step.phase==='closure'?`${loopDisplayCode(loop)} · ${loopDisplayName(loop)} — วงจรปิดครบแล้ว`:loop&&anchor?`เริ่มจาก ${anchor.label}`:'ภาพรวม · ครบทุกวงจร';
+      relationshipReader.append(el('div','cld-relationship-reader__phase',message));
+    }
+  }
+  function cameraBoxFor(bounds,{capLabelSize=true}={}){
+    if(!bounds.length)return null;
+    const rect=stage.getBoundingClientRect(),screenWidth=rect.width||640,screenHeight=rect.height||480,aspect=screenWidth/screenHeight;
+    const x=Math.min(...bounds.map(b=>b.x)),y=Math.min(...bounds.map(b=>b.y)),right=Math.max(...bounds.map(b=>b.x+b.width)),bottom=Math.max(...bounds.map(b=>b.y+b.height));
+    let width=Math.max(right-x,(bottom-y)*aspect,80),height=width/aspect;
+    // Include arrowheads and a screen-sized safe margin, even on long major arcs.
+    const padding=24+width*18/screenWidth;width+=padding*2;height+=padding*2;
+    width=Math.max(width,height*aspect);
+    // A short stock-flow segment should not produce an oversized node label.
+    if(capLabelSize)width=Math.max(width,screenWidth*28/30);
+    height=width/aspect;
+    return{x:(x+right-width)/2,y:(y+bottom-height)/2,width,height};
+  }
+  function currentLoopBounds(loop,boxes){
+    if(!loop)return[];const bounds=loop.node_ids.map(id=>boxes.get(id)).filter(Boolean);
+    for(const id of loop.edge_ids){const group=svg.querySelector(`[data-cld-edge="${id}"]`);if(group)bounds.push(group.getBBox())}
+    const marker=svg.querySelector(`.cld-loop-marker[data-loop-id="${loop.id}"]`);if(marker)bounds.push(marker.getBBox());return bounds;
+  }
+  function fitRelationshipFrame(step,loop,boxes){
+    if(pref.view!=='relationship')return false;
+    const edge=edgeMap.get(step.edge_id);let bounds=[];
+    if(pref.followOverview==='loop'&&loop)bounds=currentLoopBounds(loop,boxes);
+    else if(edge){bounds=[boxes.get(edge.from),boxes.get(edge.to)].filter(Boolean);const group=svg.querySelector(`[data-cld-edge="${edge.id}"]`);if(group)bounds.push(group.getBBox())}
+    else if(step.phase==='closure'&&loop)bounds=currentLoopBounds(loop,boxes);
+    else if(loop){const anchor=boxes.get(loop.connection.anchor_node_id);if(anchor)bounds=[anchor]}
+    else return false;
+    const box=cameraBoxFor(bounds);if(!box)return false;pref.fitBox=box;return true;
+  }
+
   function fitRevealedBounds(boxes,inFocus,edgeBounds,positioning,markerBounds){
     // The current loop keeps its complete circular frame while its steps appear.
     // Bounds are numeric layout data; future variables and links are not rendered.
@@ -102850,6 +102918,8 @@ function cldStorySceneNode(scene, stepIndex, {allSteps=false}={}) {
   }
   function draw(step) {
     const loop=loopMap.get(step.loop_id),knownEdges=new Set(step.cumulative_edge_ids||[]),knownNodes=new Set(step.revealed_node_ids||step.introduced_node_ids||[]);
+    if(pref.view==='relationship'&&pref.followStep!==step.index){pref.zoom=1;pref.panX=0;pref.panY=0;pref.followOverview=null;pref.followStep=step.index}
+    updateRelationshipReader(step,loop);
     const local=new Set(step.local_traversed_edge_ids||step.local_edge_ids||[]),inFocus=pref.view==='focus'&&Boolean(loop),scope=new Set(inFocus?[loop.connection.anchor_node_id]:[...knownNodes]);
     if(inFocus)for(const id of local){const edge=edgeMap.get(id);if(edge){scope.add(edge.from);scope.add(edge.to)}}
     const candidates=(inFocus?[...local]:[...knownEdges]).filter(id=>knownEdges.has(id));
@@ -102858,6 +102928,7 @@ function cldStorySceneNode(scene, stepIndex, {allSteps=false}={}) {
     const narrative=r1NarrativeStep(step,loop);activeLinkLabel.hidden=!narrative;activeLinkLabel.textContent=narrative?`${narrative.order} / ${loopPresentation(loop).steps.length} · ${narrative.thai.heading}`:'';
     if(loopPresentation(loop)){const p=loopPresentation(loop);intro.replaceChildren(el('strong','',p.takeaway_th||p.title_th),loopNarrativeButton(loop,narrative?.order||null))}else if(step.phase==='network'){intro.replaceChildren(el('strong','','ครบ 35 วงจรบนผืนภาพเดียว โดยเก็บวงจรที่เล่าผ่านมาแล้วไว้ทั้งหมด'))}else if(scene.takeaway_claim){intro.replaceChildren(claimNode(scene.takeaway_claim,{emphasis:scene.takeaway}))}
     section.dataset.currentEdge=step.edge_id||'';zoomLoop.disabled=!loop;zoomLoop.hidden=inFocus;
+    fit.title=pref.view==='relationship'?'กลับมาเห็นความสัมพันธ์นี้ครบทั้งเส้น':'Fit the accumulated model';
     svg.setAttribute('aria-label',loop?`${loopDisplayCode(loop)}: ${loopDisplayName(loop)}. ${inFocus?'Circular step-by-step loop':'Growing network'}`:'Assembled model network');
     const visibleEdges=candidates.map(id=>edgeMap.get(id)).filter(e=>e&&scope.has(e.from)&&scope.has(e.to));
     const visibleNodes=scope,activeNodes=new Set(loop||step.edge_id?step.focus_node_ids||[]:[]),integrated=!inFocus,dense=Boolean(loop&&loop.node_ids.length>=8);
@@ -102891,7 +102962,7 @@ function cldStorySceneNode(scene, stepIndex, {allSteps=false}={}) {
       if(revealing){group.querySelector('.cld-edge__line').setAttribute('pathLength','1000');const timer=setTimeout(()=>{group.classList.remove('cld-edge--new');group.querySelector('.cld-edge__line').removeAttribute('pathLength');timers.delete(timer)},Math.max(1,900-revealAge));timers.add(timer)}
     }
     const markerType=paintLoopMilestones(step,loop,inFocus,positioning);
-    fitRevealedBounds(boxes,inFocus,edgeLayer.getBBox(),positioning,svg.querySelector('.cld-story__loop-markers')?.getBBox());
+    if(!fitRelationshipFrame(step,loop,boxes))fitRevealedBounds(boxes,inFocus,edgeLayer.getBBox(),positioning,svg.querySelector('.cld-story__loop-markers')?.getBBox());
     panel.dataset.displayType=markerType;panel.dataset.closed=String(Boolean(markerType));panel.dataset.layout=integrated?'connected-map':'single-loop';
     svg.dataset.revealedNodes=String(knownNodes.size);svg.dataset.introducedEdges=String(knownEdges.size);
     edgePaintState={boxes,nodeGroups,edgeGroups,step,loop,knownEdges};previousEdges=new Set(visibleEdges.map(e=>e.id));previousNodes=new Set(visibleNodes);pref.lastEdgeIds=[...previousEdges];pref.lastNodeIds=[...previousNodes];applyViewBox(true);
@@ -102944,6 +103015,7 @@ function syncVisibleEndpoints() {
   }
   zoomLoop.addEventListener('click',()=>{
     const loop=edgePaintState?.loop,base=pref.fitBox;if(!loop||!base)return;
+    if(pref.view==='relationship'){pref.followOverview='loop';pref.zoom=1;pref.panX=0;pref.panY=0;fitRelationshipFrame(edgePaintState.step,loop,edgePaintState.boxes);applyViewBox(true);return}
     const bounds=loop.node_ids.map(id=>edgePaintState.boxes.get(id)).filter(Boolean);
     for(const id of loop.edge_ids){const group=[...svg.querySelectorAll('[data-cld-edge]')].find(g=>g.dataset.cldEdge===id);if(group)bounds.push(group.getBBox())}
     const marker=[...svg.querySelectorAll('[data-loop-id]')].find(g=>g.dataset.loopId===loop.id);if(marker)bounds.push(marker.getBBox());
@@ -102955,9 +103027,9 @@ function syncVisibleEndpoints() {
   loopSelect.addEventListener('change',()=>{pref.panX=0;pref.panY=0;pref.zoom=1;update(Number(loopSelect.value),{scroll:allSteps,user:true})});
   range.addEventListener('input',()=>update(Number(range.value),{scroll:allSteps,user:true}));
   prev.addEventListener('click',()=>update(activeIndex-1,{scroll:allSteps,user:true}));next.addEventListener('click',()=>update(activeIndex+1,{scroll:allSteps,user:true}));
-  viewSelect.addEventListener('change',()=>{pref.view=viewSelect.value;pref.zoom=1;pref.panX=0;pref.panY=0;draw(data.storySteps[activeIndex])});
+  viewSelect.addEventListener('change',()=>{pref.view=viewSelect.value;pref.zoom=1;pref.panX=0;pref.panY=0;pref.followOverview=null;pref.followStep=null;const url=new URL(location.href);url.searchParams.set('cldView',pref.view);history.replaceState(null,'',url);draw(data.storySteps[activeIndex])});
   labelsSelect.addEventListener('change',()=>{pref.labels=labelsSelect.value;draw(data.storySteps[activeIndex])});
-  zoomIn.addEventListener('click',()=>{pref.zoom=Math.min(12,pref.zoom*1.25);applyViewBox()});zoomOut.addEventListener('click',()=>{pref.zoom=Math.max(.7,pref.zoom/1.25);applyViewBox()});fit.addEventListener('click',()=>{pref.zoom=1;pref.panX=0;pref.panY=0;applyViewBox()});
+  zoomIn.addEventListener('click',()=>{pref.zoom=Math.min(12,pref.zoom*1.25);applyViewBox()});zoomOut.addEventListener('click',()=>{pref.zoom=Math.max(.7,pref.zoom/1.25);applyViewBox()});fit.addEventListener('click',()=>{pref.zoom=1;pref.panX=0;pref.panY=0;pref.followOverview=null;if(edgePaintState)fitRelationshipFrame(edgePaintState.step,edgePaintState.loop,edgePaintState.boxes);applyViewBox()});
   stage.addEventListener('pointerdown',e=>{if(e.target.closest('[data-cld-edge],.cld-loop-marker,a,button'))return;drag={x:e.clientX,y:e.clientY,panX:pref.panX,panY:pref.panY};stage.setPointerCapture(e.pointerId);stage.classList.add('is-panning')});
   stage.addEventListener('pointermove',e=>{if(!drag)return;const rect=stage.getBoundingClientRect();pref.panX=drag.panX-(e.clientX-drag.x)*(pref.fitBox?.width||1200)/(rect.width*pref.zoom);pref.panY=drag.panY-(e.clientY-drag.y)*(pref.fitBox?.height||900)/(rect.height*pref.zoom);applyViewBox()});
   const endPan=()=>{drag=null;stage.classList.remove('is-panning')};stage.addEventListener('pointerup',endPan);stage.addEventListener('pointercancel',endPan);
@@ -102975,7 +103047,8 @@ function syncVisibleEndpoints() {
   };
   const scheduleReading=()=>{if(!readScrollFrame)readScrollFrame=requestAnimationFrame(syncReadingPosition)};
   if(allSteps){window.addEventListener('scroll',scheduleReading,{passive:true});window.addEventListener('resize',scheduleReading,{passive:true});cldStoryDisposers.add(()=>{window.removeEventListener('scroll',scheduleReading);window.removeEventListener('resize',scheduleReading);if(readScrollFrame)cancelAnimationFrame(readScrollFrame)})}
-  const dispose=()=>{disposed=true;if(cameraFrame)cancelAnimationFrame(cameraFrame);observer?.disconnect();for(const timer of timers)clearTimeout(timer);timers.clear()};cldStoryDisposers.add(dispose);
+  const resizeObserver=new ResizeObserver(()=>{if(pref.view!=='relationship'||disposed||!edgePaintState||!stage.isConnected)return;fitRelationshipFrame(edgePaintState.step,edgePaintState.loop,edgePaintState.boxes);applyViewBox()});resizeObserver.observe(stage);
+  const dispose=()=>{disposed=true;resizeObserver.disconnect();if(cameraFrame)cancelAnimationFrame(cameraFrame);observer?.disconnect();for(const timer of timers)clearTimeout(timer);timers.clear()};cldStoryDisposers.add(dispose);
   const expand=el('button','cld-story__expand','ขยาย CLD');expand.type='button';expand.setAttribute('aria-label','ขยาย CLD เต็มจอ');
   expand.addEventListener('click',()=>{if(document.fullscreenElement===panel)document.exitFullscreen?.();else panel.requestFullscreen?.().catch(()=>{})});graphTools.append(expand);
   const fullScreenLabel=()=>{expand.textContent=document.fullscreenElement===panel?'ย่อ CLD':'ขยาย CLD'};document.addEventListener('fullscreenchange',fullScreenLabel);cldStoryDisposers.add(()=>document.removeEventListener('fullscreenchange',fullScreenLabel));
@@ -103107,7 +103180,7 @@ function syncVisibleEndpoints() {
 <aside class="public-status" aria-label="Public edition status"><span id="public-release-label"></span><button type="button" id="public-material-open">Source notes</button><span class="public-status__update" hidden><span>New revision available.</span><button type="button" id="public-reload">Reload</button></span></aside>
 <dialog class="public-material" id="study-material" aria-labelledby="study-material-title"><h2 id="study-material-title">Study materials and evidence boundary</h2><p>This is a working research presentation. Published sources remain linked to their original public pages where available. The study model, draft review protocols and candidate literature register are unpublished working materials; their original files are not included in this public edition. Some cited workshop documents are locally held and are also not distributed here; their original citation metadata is retained.</p><p>Participant-level consultation records, transcript locators and identifying role/date combinations are withheld. The public presentation retains the recorded model structure, source-contribution counts, support status and review-depth assessments. Those counts and assessments describe the original working ledger, include withheld contributions and have not been recomputed after redaction. They are not independent-study counts or causal validation.</p><p>Candidate references retain their provisional screening and reading-depth labels. This edition omits raw abstract-export fields. The planned reviews and hypotheses remain distinct from completed or independently verified findings.</p><p>Source figures retain their original attribution and the recorded CC BY-NC 4.0 licence. Fonts are requested from the viewer’s device; no font binaries are distributed.</p><p><a href="SOURCE_NOTES.md" target="_blank" rel="noopener noreferrer">Public-edition source notes</a></p><form method="dialog"><button>Close source notes</button></form></dialog>
 <script>
-(()=>{'use strict';const release={"updated_at": "2026-10-31T10:54:58+07:00"},material=document.getElementById('study-material');let lastCheck=0;
+(()=>{'use strict';const release={"updated_at": "2026-10-31T11:13:28+07:00"},material=document.getElementById('study-material');let lastCheck=0;
 const status=document.querySelector('.public-status');document.querySelector('.controls__tools')?.append(status);
 const date=new Date(release.updated_at);document.getElementById('public-release-label').textContent=new Intl.DateTimeFormat('en-GB',{dateStyle:'medium',timeZone:'Asia/Bangkok'}).format(date);status.title='Working research presentation · Updated '+new Intl.DateTimeFormat('en-GB',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Bangkok'}).format(date)+' ICT';
 function openMaterial(){if(!material.open)material.showModal()}
