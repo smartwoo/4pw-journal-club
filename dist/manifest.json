@@ -1,11 +1,11 @@
 {
-  "updated_at": "2026-10-31T08:15:51+07:00",
+  "updated_at": "2026-10-31T09:00:42+07:00",
   "logical_pages": 56,
   "files": [
     {
       "path": "index.html",
-      "sha256": "fa697ec723906a2fd825f4cb5d52e9de0b68a3ccca425e966626a4347fce62f9",
-      "bytes": 3294300
+      "sha256": "483f5def23ad4e9fcb4861113786b1684777b850f67215436fb66b50b8ca2e33",
+      "bytes": 3439084
     },
     {
       "path": ".nojekyll",
@@ -14,18 +14,18 @@
     },
     {
       "path": "version.json",
-      "sha256": "00b942706aeb8d0e138f7b97c5aa7a0a9e37455c195b4efcd8ed565585bf7080",
+      "sha256": "24418a672f6b51313e3af795a8a642de0dcd34d944c426eded901b1016e6a439",
       "bytes": 99
     },
     {
       "path": "SOURCE_NOTES.md",
-      "sha256": "4b4509dcb99b4ceda6634dbbb080eb5e65d43da77eb5649cd1c6242238a9cc6c",
+      "sha256": "edd4fc6f4bf82cbcacc61f256d24aa5d3c349fce681849b25cc26b2f232dd89a",
       "bytes": 765
     },
     {
       "path": "model-specification.html",
-      "sha256": "a1aabf21facbf6955380a69794778bbdb1efde523a6460744b5dd7a0c27bce22",
-      "bytes": 188268
+      "sha256": "1f48fef4ccbbca5417af581a68aa2db6c74002cce5c100a1f3df11f452e8bd21",
+      "bytes": 200237
     },
     {
       "path": "assets/illustrations/cover-abstract.png",
