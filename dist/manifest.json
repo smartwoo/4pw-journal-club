@@ -1,11 +1,11 @@
 {
-  "updated_at": "2026-10-31T07:46:38+07:00",
+  "updated_at": "2026-10-31T08:15:51+07:00",
   "logical_pages": 56,
   "files": [
     {
       "path": "index.html",
-      "sha256": "17711b5a76461f4e4d8994e6e31bf5a70b5b48b20222b7fd743d8ecb6c0b85ff",
-      "bytes": 3290249
+      "sha256": "fa697ec723906a2fd825f4cb5d52e9de0b68a3ccca425e966626a4347fce62f9",
+      "bytes": 3294300
     },
     {
       "path": ".nojekyll",
@@ -14,12 +14,12 @@
     },
     {
       "path": "version.json",
-      "sha256": "caade9ae69eb46866a921e982d23b599fb7011c18d464dbd58c5e3d2406d7691",
+      "sha256": "00b942706aeb8d0e138f7b97c5aa7a0a9e37455c195b4efcd8ed565585bf7080",
       "bytes": 99
     },
     {
       "path": "SOURCE_NOTES.md",
-      "sha256": "80282940ffcfb10d46917e5d061f586b18d39085a69b6a7c4b80b19e360bf375",
+      "sha256": "4b4509dcb99b4ceda6634dbbb080eb5e65d43da77eb5649cd1c6242238a9cc6c",
       "bytes": 765
     },
     {

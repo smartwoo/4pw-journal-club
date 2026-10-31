@@ -837,6 +837,30 @@ html[data-motion="off"] .connected-cld .cld-edge--new,html[data-motion="off"] .c
 .canonical-cld .cld-story__relation>span{min-width:0;overflow-wrap:anywhere}
 @media(max-width:800px){.mode-read .canonical-cld .cld-story__narrative{width:100%;min-width:0;max-width:100%}.mode-read .canonical-cld .cld-story__card{min-width:0;max-width:100%}}
 
+
+.cld-story__active-loop{font-size:22px;font-weight:700;line-height:1.3;color:#1d1d1f;margin:0;text-align:center;overflow-wrap:anywhere}
+@media(max-width:800px){.cld-story__active-loop{font-size:20px;line-height:1.25}}
+
+
+/* In a talk, the circular diagram owns the full left column height. */
+.cld-story--canvas-present .cld-story__layout{height:100%;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:24px}
+.cld-story__text-column{display:flex;flex-direction:column;min-height:0;min-width:0;gap:9px}
+.cld-story--canvas-present .cld-story__title{font-size:36px;line-height:1.25;text-align:left}
+.cld-story--canvas-present .cld-story__takeaway{font-size:27px;line-height:1.3;text-align:left;margin:0}
+.cld-story--canvas-present .cld-story__narrative{flex:1;min-height:0;padding:0 8px 0 0}
+.cld-story--canvas-present .cld-story__controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:5px 7px;padding:5px 0;font-size:17px}
+.cld-story--canvas-present .cld-story__select-label{grid-column:1/-1;width:100%;min-width:0}
+.cld-story--canvas-present .cld-story__loop-select{flex:1;min-width:0;max-width:100%;width:0}
+.cld-story--canvas-present .cld-story__previous{grid-column:1;grid-row:2}
+.cld-story--canvas-present .cld-story__next{grid-column:2;grid-row:2}
+.cld-story--canvas-present .cld-story__position{grid-column:3;grid-row:2;font-size:17px;min-width:56px}
+.cld-story--canvas-present .cld-story__range-label{grid-column:1/-1;max-width:none;width:100%;font-size:16px;flex:none}
+.cld-story--canvas-present .cld-story__range{flex:1}
+.cld-story--canvas-present .cld-story__panel[data-layout="single-loop"] .connected-loop-caption,
+.cld-story--canvas-present .cld-story__panel[data-layout="single-loop"] .connected-completed,
+.cld-story--canvas-present .cld-story__panel[data-layout="single-loop"] .cld-story__boundary{display:none}
+@media(max-width:800px){.cld-story--canvas-present .cld-story__layout{height:auto;display:flex;flex-direction:column}.cld-story--canvas-present .cld-story__text-column{display:contents}.cld-story--canvas-present .cld-story__title{order:1}.cld-story--canvas-present .cld-conclusion-label{order:2}.cld-story--canvas-present .cld-story__takeaway{order:3}.cld-story--canvas-present .cld-story__controls{order:4}.cld-story--canvas-present .cld-story__panel{order:5}.cld-story--canvas-present .cld-story__narrative{order:6;overflow:visible}}
+
 </style>
 <style id="public-font-fallback">
 @font-face{font-family:"Journal Public Latin";src:local("Arial"),local("Roboto"),local("Liberation Sans");font-style:normal;font-weight:300 600;font-display:swap;size-adjust:68.5%;unicode-range:U+0000-0DFF,U+0E80-10FFFF}
@@ -90222,7 +90246,7 @@ svg.motion-active .fw-motion-line{animation:fw-findings-draw .70s ease-out var(-
     ]
   },
   "public_edition": {
-    "updated_at": "2026-10-31T07:46:38+07:00",
+    "updated_at": "2026-10-31T08:15:51+07:00",
     "status": "Working research presentation",
     "private_material_boundary": "Original unpublished source files are not distributed in this public edition.",
     "consultation_redaction": "Participant-level consultation details are omitted from the public edition. The working ledger retains the original record. Recorded contribution counts and review-depth assessments have not been recalculated after this omission; they are not independent causal validation.",
@@ -91119,7 +91143,7 @@ function cldStorySceneNode(scene, stepIndex, {allSteps=false}={}) {
   const edgeMap=new Map(data.edges.map(x=>[x.id,x]));
   const loopMap=new Map(data.loops.map(x=>[x.id,x]));
   const uid=`cld-story-${++cldStoryCopy}`;
-  const pref=cldStoryPreferences.get(scene.id)||{view:'growing',labels:'active',zoom:1,panX:0,panY:0};
+  const pref=cldStoryPreferences.get(scene.id)||{view:'focus',labels:'active',zoom:1,panX:0,panY:0};
   cldStoryPreferences.set(scene.id,pref);pref.edgeRevealAt=pref.edgeRevealAt||{};
   let activeIndex=Math.max(0,Math.min(data.storySteps.length-1,stepIndex||0));
   let observer=null,disposed=false,drag=null,cameraFrame=0;
@@ -91147,7 +91171,7 @@ function cldStorySceneNode(scene, stepIndex, {allSteps=false}={}) {
   const layout=el('div','cld-story__layout'),panel=el('figure','visual-figure cld-story__panel');
   const graphTools=el('div','cld-story__graph-tools');graphTools.setAttribute('role','group');graphTools.setAttribute('aria-label','Model view controls');
   const viewLabel=el('label','','View '),viewSelect=el('select');
-  for(const [value,label]of [['growing','Growing network'],['focus','Current path']]){const o=el('option','',label);o.value=value;viewSelect.append(o)}
+  for(const [value,label]of [['focus','Loop by loop'],['growing','Growing network']]){const o=el('option','',label);o.value=value;viewSelect.append(o)}
   viewSelect.value=pref.view;viewLabel.append(viewSelect);
   const labelsLabel=el('label','','Emphasis '),labelsSelect=el('select');
   for(const [value,label]of [['active','Current relationship'],['all','All introduced variables']]){const o=el('option','',label);o.value=value;labelsSelect.append(o)}
@@ -91160,14 +91184,14 @@ function cldStorySceneNode(scene, stepIndex, {allSteps=false}={}) {
   const svgNode=(tag,attrs={},text='')=>{const n=document.createElementNS(ns,tag);for(const[k,v]of Object.entries(attrs))n.setAttribute(k,String(v));if(text)n.textContent=text;return n};
   const initialBox=pref.lastCameraBox;const svg=svgNode('svg',{viewBox:initialBox?`${initialBox.x} ${initialBox.y} ${initialBox.width} ${initialBox.height}`:'0 0 1200 900',role:'group','aria-label':'Progressively revealed study model'});
   stage.append(svg);
-  const graphCaption=el('p','cld-story__graph-caption');
+  const activeLoopHeading=el('p','cld-story__active-loop');activeLoopHeading.setAttribute('aria-live','polite');const graphCaption=el('p','cld-story__graph-caption');
   const loopCaption=el('figcaption','connected-loop-caption');loopCaption.hidden=true;const completedLoops=el('details','connected-completed');completedLoops.hidden=true;
   const graphLegend=el('div','cld-story__legend connected-cld-legend');
   graphLegend.append(el('b','','Legend'));
   for(const [polarity,label]of [['+','Adds to / same direction'],['-','Subtracts from / opposite direction']]){const item=el('span','connected-cld-legend__item');item.dataset.polarity=polarity;item.append(el('span','connected-cld-legend__line'),document.createTextNode(label));graphLegend.append(item)}
   graphLegend.append(el('span','connected-cld-legend__delay','∥ Recorded delay'));graphLegend.setAttribute('aria-label','Relationship polarity and delay; these signs are model directions, not effect estimates.');
   graphLegend.append(el('span','canonical-legend-types','STOCKS: uppercase · flows / converters: lowercase'),el('span','canonical-legend-kinds','··· stock–flow identity · – – analogical causal link'));const boundary=el('p','cld-story__boundary','โครงสร้างวงจรยังไม่ยืนยันเหตุและผล · เส้นใหม่รอประเมินใน 4PW');
-  panel.append(graphTools,stage,loopCaption,graphCaption,graphLegend,completedLoops,boundary);
+  panel.append(graphTools,activeLoopHeading,stage,loopCaption,graphCaption,graphLegend,completedLoops,boundary);
   const narrative=el('div','cld-story__narrative');narrative.setAttribute('role','list');
   const cardMap=new Map();
 
@@ -91201,7 +91225,10 @@ function cldStorySceneNode(scene, stepIndex, {allSteps=false}={}) {
     const loop=loopMap.get(step.loop_id),card=el('section','cld-story__card');card.setAttribute('role','listitem');card.id=`${uid}-card-${index}`;card.dataset.cldStep=String(index);card.style.setProperty('--story-order',String(index%3));connectedCardGrammar(card,step,loop,data,{el,edgeMap,nodeMap,evidenceButton});return card;
   }
   if(allSteps)for(const [i,step]of data.storySteps.entries()){const card=makeCard(step,i);cardMap.set(i,card);narrative.append(card)}
-  layout.append(panel,narrative);const conclusionLabel=el('h3','conclusion__label cld-conclusion-label','Key Conclusion');section.append(title,conclusionLabel,intro,controls,layout);
+  const conclusionLabel=el('h3','conclusion__label cld-conclusion-label','Key Conclusion');
+  const canvasPresent=!allSteps&&state.mode==='present'&&document.documentElement.dataset.printing!=='true'&&matchMedia('(min-width:801px)').matches;
+  if(canvasPresent){section.classList.add('cld-story--canvas-present');const textColumn=el('div','cld-story__text-column');textColumn.append(title,conclusionLabel,intro,controls,narrative);layout.append(panel,textColumn);section.append(layout)}
+  else{layout.append(panel,narrative);section.append(title,conclusionLabel,intro,controls,layout)}
 
   function applyViewBox(animate=false) {
     const base=pref.fitBox||{x:0,y:0,width:1200,height:900},width=base.width/pref.zoom,height=base.height/pref.zoom;
@@ -91216,8 +91243,10 @@ function cldStorySceneNode(scene, stepIndex, {allSteps=false}={}) {
     }else set(target);
     stage.setAttribute('aria-label',`Study model, zoom ${Math.round(pref.zoom*100)} percent. Drag to pan; relationships open their sources.`);syncVisibleEndpoints();
   }
-  function fitRevealedBounds(boxes,inFocus,edgeBounds){
-    // Both views fit the revealed labels and paths; names are never hidden by zoom.
+  function fitRevealedBounds(boxes,inFocus,edgeBounds,positioning){
+    // The current loop keeps its complete circular frame while its steps appear.
+    // Bounds are numeric layout data; future variables and links are not rendered.
+    if(inFocus){const b=positioning.baseViewBox,padding=80;let width=b.width+padding*2,height=b.height+padding*2;if(width/height<4/3)width=height*4/3;else height=width*3/4;pref.fitBox={x:b.x+b.width/2-width/2,y:b.y+b.height/2-height/2,width,height};return}
     const list=[...boxes.values()];if(edgeBounds&&edgeBounds.width>0&&edgeBounds.height>0)list.push(edgeBounds);if(!list.length)return;
     const padding=90,minX=Math.min(...list.map(b=>b.x))-padding,minY=Math.min(...list.map(b=>b.y))-padding,maxX=Math.max(...list.map(b=>b.x+b.width))+padding,maxY=Math.max(...list.map(b=>b.y+b.height))+padding;
     let width=Math.max(940,maxX-minX),height=Math.max(705,maxY-minY);if(width/height<4/3)width=height*4/3;else height=width*3/4;
@@ -91260,8 +91289,12 @@ function cldStorySceneNode(scene, stepIndex, {allSteps=false}={}) {
   }
   function draw(step) {
     const loop=loopMap.get(step.loop_id),knownEdges=new Set(step.cumulative_edge_ids||[]),knownNodes=new Set(step.revealed_node_ids||step.introduced_node_ids||[]);
-    const local=new Set(step.local_edge_ids||[]),inFocus=pref.view==='focus'&&Boolean(loop),scope=new Set(inFocus?loop.node_ids.filter(id=>knownNodes.has(id)):[...knownNodes]);
-    const candidates=(inFocus?loop.edge_ids:[...knownEdges]).filter(id=>knownEdges.has(id));
+    const local=new Set(step.local_traversed_edge_ids||step.local_edge_ids||[]),inFocus=pref.view==='focus'&&Boolean(loop),scope=new Set(inFocus?[loop.connection.anchor_node_id]:[...knownNodes]);
+    if(inFocus)for(const id of local){const edge=edgeMap.get(id);if(edge){scope.add(edge.from);scope.add(edge.to)}}
+    const candidates=(inFocus?[...local]:[...knownEdges]).filter(id=>knownEdges.has(id));
+    const layoutKey=inFocus?`loop:${loop.id}`:'network';if(pref.layoutKey!==layoutKey){pref.zoom=1;pref.panX=0;pref.panY=0;if(inFocus){previousEdges=new Set();previousNodes=new Set()}pref.layoutKey=layoutKey}
+    activeLoopHeading.textContent=loop?`${loop.id} · ${loop.thai_name||loop.name}`:'ภาพรวม · เติมความสัมพันธ์ที่อยู่นอกวงจรที่ตั้งชื่อ';activeLoopHeading.title=loop?.name||'';
+    svg.setAttribute('aria-label',loop?`${loop.id}: ${loop.name}. ${inFocus?'Circular step-by-step loop':'Growing network'}`:'Assembled model network');
     const visibleEdges=candidates.map(id=>edgeMap.get(id)).filter(e=>e&&scope.has(e.from)&&scope.has(e.to));
     const visibleNodes=scope,activeNodes=new Set(step.focus_node_ids||[]),integrated=!inFocus,dense=Boolean(loop&&loop.node_ids.length>=8);
     const ordered=(data.layout_node_order||data.nodes.map(n=>n.id)).filter(id=>visibleNodes.has(id));
@@ -91293,7 +91326,7 @@ function cldStorySceneNode(scene, stepIndex, {allSteps=false}={}) {
       if(revealing){group.querySelector('.cld-edge__line').setAttribute('pathLength','1000');const timer=setTimeout(()=>{group.classList.remove('cld-edge--new');group.querySelector('.cld-edge__line').removeAttribute('pathLength');timers.delete(timer)},Math.max(1,900-revealAge));timers.add(timer)}
     }
     const markerType=paintLoopMilestones(step,loop,inFocus,positioning);
-    fitRevealedBounds(boxes,inFocus,edgeLayer.getBBox());
+    fitRevealedBounds(boxes,inFocus,edgeLayer.getBBox(),positioning);
     panel.dataset.displayType=markerType;panel.dataset.closed=String(Boolean(markerType));panel.dataset.layout=integrated?'connected-map':'single-loop';
     svg.dataset.revealedNodes=String(knownNodes.size);svg.dataset.introducedEdges=String(knownEdges.size);
     edgePaintState={boxes,nodeGroups,edgeGroups,step,loop,knownEdges};previousEdges=new Set(visibleEdges.map(e=>e.id));previousNodes=new Set(visibleNodes);pref.lastEdgeIds=[...previousEdges];pref.lastNodeIds=[...previousNodes];applyViewBox(true);
@@ -91499,7 +91532,7 @@ function syncVisibleEndpoints() {
 <aside class="public-status" aria-label="Public edition status"><span id="public-release-label"></span><button type="button" id="public-material-open">Source notes</button><span class="public-status__update" hidden><span>New revision available.</span><button type="button" id="public-reload">Reload</button></span></aside>
 <dialog class="public-material" id="study-material" aria-labelledby="study-material-title"><h2 id="study-material-title">Study materials and evidence boundary</h2><p>This is a working research presentation. Published sources remain linked to their original public pages where available. The study model, draft review protocols and candidate literature register are unpublished working materials; their original files are not included in this public edition. Some cited workshop documents are locally held and are also not distributed here; their original citation metadata is retained.</p><p>Participant-level consultation records, transcript locators and identifying role/date combinations are withheld. The public presentation retains the recorded model structure, source-contribution counts, support status and review-depth assessments. Those counts and assessments describe the original working ledger, include withheld contributions and have not been recomputed after redaction. They are not independent-study counts or causal validation.</p><p>Candidate references retain their provisional screening and reading-depth labels. This edition omits raw abstract-export fields. The planned reviews and hypotheses remain distinct from completed or independently verified findings.</p><p>Source figures retain their original attribution and the recorded CC BY-NC 4.0 licence. Fonts are requested from the viewer’s device; no font binaries are distributed.</p><p><a href="SOURCE_NOTES.md" target="_blank" rel="noopener noreferrer">Public-edition source notes</a></p><form method="dialog"><button>Close source notes</button></form></dialog>
 <script>
-(()=>{'use strict';const release={"updated_at": "2026-10-31T07:46:38+07:00"},material=document.getElementById('study-material');let lastCheck=0;
+(()=>{'use strict';const release={"updated_at": "2026-10-31T08:15:51+07:00"},material=document.getElementById('study-material');let lastCheck=0;
 const status=document.querySelector('.public-status');document.querySelector('.controls__tools')?.append(status);
 const date=new Date(release.updated_at);document.getElementById('public-release-label').textContent=new Intl.DateTimeFormat('en-GB',{dateStyle:'medium',timeZone:'Asia/Bangkok'}).format(date);status.title='Working research presentation · Updated '+new Intl.DateTimeFormat('en-GB',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Bangkok'}).format(date)+' ICT';
 function openMaterial(){if(!material.open)material.showModal()}
